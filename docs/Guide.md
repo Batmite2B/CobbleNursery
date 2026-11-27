@@ -6,7 +6,7 @@
 
 The Nursery Terminal is where you assign parents and collect eggs. Craft one with four iron ingots, two redstone dust, one copper ingot, one smooth stone and a Cobblemon Monitor. You may also find terminals in some Cobblemon Pokémon Centers. Craft an Incubation Nest with seven sticks and a hay bale.
 
-![Nursery Terminal placed in the world](screenshots/nursery-terminal.png)
+![Nursery Terminal with its screen on](screenshots/terminal-in-world.png)
 
 ## Your first hatchling
 
@@ -14,15 +14,15 @@ The Nursery Terminal is where you assign parents and collect eggs. Craft one wit
 2. Select **Start**. The panel shows the expected offspring and any eligible Egg Moves. Click the egg slot to collect eggs as they appear.
 3. Place an egg in an Incubation Nest. Right-click the egg to check its time remaining or collect the hatchling when it’s ready.
 
-![Active breeding habitat and offspring preview](screenshots/breeding-habitat.png)
-
-![An egg waiting to be collected from the terminal](screenshots/egg-tray.png)
+![Togepi in the offspring preview, two parents in the habitat, and one egg in the collection slot beside Stop](screenshots/first-hatchling.png)
 
 ## Egg Groups and Ditto
 
 Select or hover over a Pokémon in the terminal to see its Egg Group or Groups in the left panel. Look for at least one shared group when choosing parents. Ditto can breed with an eligible Pokémon regardless of sex or Egg Group. The offspring comes from the other Pokémon’s evolutionary line. Two Ditto cannot breed with each other.
 
-![A parent’s Egg Groups displayed in the terminal](screenshots/egg-groups.png)
+![Togekiss’s details, with Flying and Fairy listed under Egg Group at the bottom](screenshots/egg-group-detail.png)
+
+*Example: Togekiss belongs to the Flying and Fairy Egg Groups.*
 
 ## Stats and inheritance
 
@@ -40,7 +40,7 @@ An individual value (IV) is a number from 0 to 31 that a Pokémon receives at bi
 
 The first habitat is unlocked by default. The terminal has four habitat tabs, and each unlocked habitat can run its own pair. Select a locked tab to see its price. Servers can configure those prices. The terminal’s heart indicates active breeding; the exclamation mark indicates that the egg tray needs attention.
 
-![The terminal shows a locked habitat and its unlock price](screenshots/habitat-unlock.png)
+![The terminal shows a locked habitat and its unlock price](screenshots/locked-habitat-detail.png)
 
 ## Incubation Nests
 
@@ -56,7 +56,7 @@ Right-click an egg to see the active incubation bonuses:
 
 Caregivers include Togepi, Exeggcute, Chansey, Blissey, Happiny, Vullaby, Togetic, Kangaskhan, Maushold, and Pokémon with Flame Body. These bonuses can stack. The base timer still runs offline, but time spent unloaded does not receive retroactive bonus progress.
 
-![Incubation nests with eggs and a stacked scaffolding setup](screenshots/incubation-nests.png)
+![Incubation nests with eggs and a stacked scaffolding setup](screenshots/stacked-incubation.png)
 
 ## Hopper automation
 
@@ -66,4 +66,6 @@ Caregivers include Togepi, Exeggcute, Chansey, Blissey, Happiny, Vullaby, Togeti
 
 Each habitat exports through at most one terminal at a time. A village terminal can still be used for breeding, but it cannot be configured for hopper export.
 
-![The per-habitat hopper export toggle in the Nursery Terminal](screenshots/hopper-export.png)
+| Export off | Export on |
+| --- | --- |
+| ![Hopper with a red X](screenshots/hopper-off.png) | ![Hopper with a green check mark](screenshots/hopper-on.png) |
