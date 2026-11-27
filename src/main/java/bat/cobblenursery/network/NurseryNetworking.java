@@ -260,6 +260,8 @@ public final class NurseryNetworking {
             eggTray,
             state.selectedYardIndex(),
             state.eggTrayCapacity(),
+            bat.cobblenursery.config.ServerNurserySettings.current().unlockItem(),
+            bat.cobblenursery.config.ServerNurserySettings.current().breeding().shinyOddsDenominator(),
             daycareResponseMessage(message, success, confirmedUnlockYard),
             success
         ));

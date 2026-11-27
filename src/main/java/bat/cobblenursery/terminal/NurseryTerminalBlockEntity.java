@@ -1,5 +1,6 @@
 package bat.cobblenursery.terminal;
 
+import bat.cobblenursery.config.ServerNurserySettings;
 import bat.cobblenursery.nursery.service.NurseryService;
 import bat.cobblenursery.nursery.storage.NurserySavedData;
 import bat.cobblenursery.registry.NurseryRegistry;
@@ -39,6 +40,7 @@ public final class NurseryTerminalBlockEntity extends BlockEntity {
     }
 
     public boolean canConfigureEggExport(ServerPlayer player) {
+        if (!ServerNurserySettings.current().automation().terminalExport()) return false;
         return level == player.serverLevel() && !isRemoved()
                 && level.getBlockEntity(worldPosition) == this
                 && player.distanceToSqr(worldPosition.getX()+0.5, worldPosition.getY()+0.5, worldPosition.getZ()+0.5) <= 64
@@ -77,7 +79,8 @@ public final class NurseryTerminalBlockEntity extends BlockEntity {
     }
 
     public static void tickExport(Level level, BlockPos pos, BlockState state, NurseryTerminalBlockEntity terminal) {
-        if (!(level instanceof ServerLevel server) || terminal.placer == null || terminal.installation == null
+        if (!ServerNurserySettings.current().automation().terminalExport()
+                || !(level instanceof ServerLevel server) || terminal.placer == null || terminal.installation == null
                 || ((level.getGameTime() + pos.asLong()) & 7L) != 0) return;
         var under = pos.below();
         var hopperState = level.getBlockState(under);

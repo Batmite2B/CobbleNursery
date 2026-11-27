@@ -1,0 +1,55 @@
+{
+  // Item used to unlock habitats. Use an item ID like minecraft:emerald.
+  "habitatUnlockItem": "cobblemon:relic_coin",
+
+  // Prices for habitats II–IV, in order. Set a price to 0 to make it free.
+  "habitatUnlockCosts": {
+    "yard2": 64,
+    "yard3": 128,
+    "yard4": 192
+  },
+
+  // Egg production, storage limits, Ditto and shiny odds (1 in N).
+  "breeding": {
+    "secondsPerEgg": 300,
+    "eggsPerHabitat": 8,
+    "allowDitto": true,
+    "shinyOddsDenominator": 4096
+  },
+
+  // Timing scales with total IVs, with a minimum. Nest capacity: 1–4 eggs.
+  "incubation": {
+    "secondsPerPerfectIv": 180,
+    "minimumSeconds": 60,
+    "eggsPerNest": 4
+  },
+
+  // Boost percentages (0% disables), required light, and caregiver range and eligibility.
+  "bonuses": {
+    "shelterPercent": 15,
+    "lightPercent": 15,
+    "caregiverPercent": 30,
+    "minimumLight": 10,
+    "caregiverRadius": 16,
+    "caregiverSpecies": [
+      "cobblemon:togepi",
+      "cobblemon:exeggcute",
+      "cobblemon:chansey",
+      "cobblemon:blissey",
+      "cobblemon:happiny",
+      "cobblemon:vullaby",
+      "cobblemon:togetic",
+      "cobblemon:kangaskhan",
+      "cobblemon:maushold"
+    ],
+    "caregiverAbilities": [
+      "cobblemon:flamebody"
+    ]
+  },
+
+  // Allow hoppers to collect from terminals or fill nests.
+  "automation": {
+    "terminalExport": true,
+    "nestIntake": true
+  }
+}

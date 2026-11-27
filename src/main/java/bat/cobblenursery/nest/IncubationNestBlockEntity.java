@@ -1,5 +1,6 @@
 package bat.cobblenursery.nest;
 
+import bat.cobblenursery.config.ServerNurserySettings;
 import bat.cobblenursery.item.NurseryEggAppearanceResolver;
 import bat.cobblenursery.item.NurseryEggItem;
 import bat.cobblenursery.registry.NurseryRegistry;
@@ -116,8 +117,14 @@ public final class IncubationNestBlockEntity extends BlockEntity {
         return true;
     }
 
+    int firstAvailableSeat() {
+        int mask = seatMask();
+        return Integer.bitCount(mask) >= ServerNurserySettings.current().incubation().eggsPerNest()
+                ? -1 : NestLayout.firstFree(mask);
+    }
+
     private boolean canAdd(int index, Seat seat) {
-        if (index < 0 || index >= seats.length || seats[index] != null
+        if (firstAvailableSeat() < 0 || index < 0 || index >= seats.length || seats[index] != null
                 || seat.stack().isEmpty() || seat.stack().getCount() != 1) return false;
         for (Seat current : seats) if (current != null && current.hatchId().equals(seat.hatchId())) return false;
         return true;
@@ -129,9 +136,10 @@ public final class IncubationNestBlockEntity extends BlockEntity {
 
     private final class Intake extends SnapshotParticipant<IntakeSnapshot> implements Storage<ItemVariant> {
         @Override public long insert(ItemVariant resource, long maxAmount, TransactionContext transaction) {
-            if (!(level instanceof ServerLevel) || isRemoved() || maxAmount <= 0
+            if (!ServerNurserySettings.current().automation().nestIntake()
+                    || !(level instanceof ServerLevel) || isRemoved() || maxAmount <= 0
                     || !resource.isOf(NurseryRegistry.NURSERY_EGG_ITEM)) return 0;
-            int free = NestLayout.firstFree(seatMask());
+            int free = firstAvailableSeat();
             if (free < 0) return 0;
             ItemStack stack = resource.toStack();
             UUID eggOwner = NurseryEggItem.automationOwner(stack);
@@ -193,7 +201,6 @@ public final class IncubationNestBlockEntity extends BlockEntity {
     int activeWarmthMask() { return warmthMask; }
 
 
-    private static final int VALIDATE_TICKS = 1200;
 
     private boolean pending(long now) {
         for (var seat : seats) if (seat != null && seat.readyAt() > now) return true;
@@ -209,9 +216,10 @@ public final class IncubationNestBlockEntity extends BlockEntity {
         if (warmthMask != 0 && tick - warmthSeenTick <= 1 && ownerAvailable(server)) applyWarmth(now);
         int old = warmthMask;
         if (pending(now) && ownerAvailable(server)) {
-            caregiver = NestWarmth.findCaregiver(server, worldPosition);
-            warmthMask = NestWarmthRules.mask(NestRoomCache.enclosed(server, worldPosition),
-                NestWarmth.light(server, worldPosition), caregiver != null);
+            var settings = ServerNurserySettings.current().bonuses();
+            caregiver = settings.caregiverPercent() == 0 ? null : NestWarmth.findCaregiver(server, worldPosition);
+            warmthMask = NestWarmthRules.mask(settings.shelterPercent() > 0 && NestRoomCache.enclosed(server, worldPosition),
+                settings.lightPercent() > 0 ? NestWarmth.light(server, worldPosition) : -1, caregiver != null);
         } else {
             resetWarmth();
         }
@@ -255,6 +263,8 @@ public final class IncubationNestBlockEntity extends BlockEntity {
         level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
     }
 
+    private static final int BONUS_RECHECK_TICKS = 60 * 20;
+
     static void tickWarmth(net.minecraft.world.level.Level level, BlockPos pos, BlockState state, IncubationNestBlockEntity nest) {
         if (nest.warmthMask == 0 || !(level instanceof ServerLevel server)) return;
         long tick = level.getGameTime();
@@ -264,7 +274,7 @@ public final class IncubationNestBlockEntity extends BlockEntity {
             return;
         }
         nest.warmthSeenTick = tick;
-        int slot = Math.floorMod(tick + Long.hashCode(pos.asLong() * 0x9E3779B97F4A7C15L), VALIDATE_TICKS);
+        int slot = Math.floorMod(tick + Long.hashCode(pos.asLong() * 0x9E3779B97F4A7C15L), BONUS_RECHECK_TICKS);
         if (slot % NestWarmthRules.SAMPLE_TICKS != 0) return;
         long now = System.currentTimeMillis();
         int old = nest.warmthMask;
@@ -279,7 +289,7 @@ public final class IncubationNestBlockEntity extends BlockEntity {
         } else if (slot == 0) {
             if ((old & NestWarmthRules.ROOM) != 0 && !NestRoomCache.enclosed(server,pos))
                 nest.warmthMask &= ~NestWarmthRules.ROOM;
-            if ((old & NestWarmthRules.LIGHT) != 0 && NestWarmth.light(server,pos) < 10)
+            if ((old & NestWarmthRules.LIGHT) != 0 && NestWarmth.light(server,pos) < ServerNurserySettings.current().bonuses().minimumLight())
                 nest.warmthMask &= ~NestWarmthRules.LIGHT;
             if ((old & NestWarmthRules.CAREGIVER) != 0 && !NestWarmth.caregiverPresent(server,pos,nest.caregiver)) {
                 nest.warmthMask &= ~NestWarmthRules.CAREGIVER;

@@ -1,6 +1,7 @@
 package bat.cobblenursery.network;
 
 import bat.cobblenursery.CobbleNursery;
+import bat.cobblenursery.config.ServerNurserySettings;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -18,11 +19,13 @@ public record OpenDaycareScreenS2CPayload(
     List<DaycareEggTrayPayload> eggTray,
     int selectedYardIndex,
     int eggTrayCapacity,
+    String habitatUnlockItem,
+    int shinyOddsDenominator,
     String message,
     boolean messageSuccess
 ) implements CustomPacketPayload {
     public static final Type<OpenDaycareScreenS2CPayload> TYPE =
-        new Type<>(ResourceLocation.fromNamespaceAndPath(CobbleNursery.MOD_ID, "open_daycare_screen_s2c_v3"));
+        new Type<>(ResourceLocation.fromNamespaceAndPath(CobbleNursery.MOD_ID, "open_daycare_screen_s2c_v4"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, OpenDaycareScreenS2CPayload> STREAM_CODEC =
         StreamCodec.of(OpenDaycareScreenS2CPayload::write, OpenDaycareScreenS2CPayload::read);
@@ -32,6 +35,15 @@ public record OpenDaycareScreenS2CPayload(
         yards = List.copyOf(yards);
         eggTray = List.copyOf(eggTray);
         message = message == null ? "" : message;
+    }
+
+    public OpenDaycareScreenS2CPayload(BlockPos nurseryPos, boolean canForceReady,
+            List<DaycarePartyPokemonPayload> partySlots, List<DaycareYardPayload> yards,
+            List<DaycareEggTrayPayload> eggTray, int selectedYardIndex, int eggTrayCapacity,
+            String message, boolean messageSuccess) {
+        this(nurseryPos, canForceReady, partySlots, yards, eggTray, selectedYardIndex, eggTrayCapacity,
+                ServerNurserySettings.DEFAULT_ITEM, ServerNurserySettings.DEFAULT.breeding().shinyOddsDenominator(),
+                message, messageSuccess);
     }
 
     @Override
@@ -56,6 +68,8 @@ public record OpenDaycareScreenS2CPayload(
         }
         buf.writeVarInt(payload.selectedYardIndex());
         buf.writeVarInt(payload.eggTrayCapacity());
+        buf.writeUtf(payload.habitatUnlockItem(), 256);
+        buf.writeVarInt(payload.shinyOddsDenominator());
         buf.writeUtf(payload.message());
         buf.writeBoolean(payload.messageSuccess());
     }
@@ -89,6 +103,8 @@ public record OpenDaycareScreenS2CPayload(
             yards,
             eggTray,
             buf.readVarInt(),
+            buf.readVarInt(),
+            buf.readUtf(256),
             buf.readVarInt(),
             buf.readUtf(),
             buf.readBoolean()

@@ -1,11 +1,13 @@
 package bat.cobblenursery;
 
+import bat.cobblenursery.config.ServerNurserySettings;
 import bat.cobblenursery.command.NurseryCommands;
 import bat.cobblenursery.config.HabitatUnlockCosts;
 import bat.cobblenursery.entity.HealingMachineNurseManager;
 import bat.cobblenursery.network.NurseryNetworking;
 import bat.cobblenursery.network.TerminalDisplayNetworking;
-import bat.cobblenursery.nursery.service.NurseryService;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
@@ -22,9 +24,9 @@ public final class CobbleNursery implements ModInitializer {
         LOGGER.info("Initializing CobbleNursery");
         ServerLifecycleEvents.SERVER_STARTING.register(server -> {
             var file = FabricLoader.getInstance().getConfigDir().resolve(HabitatUnlockCosts.FILE_NAME);
-            NurseryService.getInstance().setHabitatUnlockCosts(
-                    HabitatUnlockCosts.load(file, warning -> LOGGER.warn("{}: {}", file, warning))
-            );
+            ServerNurserySettings.install(ServerNurserySettings.load(file,
+                    id -> BuiltInRegistries.ITEM.getOptional(ResourceLocation.parse(id)).isPresent(),
+                    warning -> LOGGER.warn("{}: {}", file, warning)));
         });
         NurseryRegistry.register();
         bat.cobblenursery.nest.NestHatchSounds.register();

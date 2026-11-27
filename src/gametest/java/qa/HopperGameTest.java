@@ -28,6 +28,36 @@ public class HopperGameTest implements FabricGameTest {
         return NurseryPlayerState.createDefault(id).upsertYard(yard);
     }
 
+    @GameTest(template=FabricGameTest.EMPTY_STRUCTURE, timeoutTicks=40)
+    public void configuredUnlockCurrency(GameTestHelper h) {
+        var previous=bat.cobblenursery.config.ServerNurserySettings.current();
+        var settings=new bat.cobblenursery.config.ServerNurserySettings(
+                new bat.cobblenursery.config.HabitatUnlockCosts(3,0,2), "minecraft:emerald",
+                previous.breeding(), previous.incubation(), previous.bonuses(), previous.automation());
+        var player=h.makeMockServerPlayerInLevel();
+        var nursery=bat.cobblenursery.nursery.service.NurseryService.getInstance();
+        var coins=net.minecraft.core.registries.BuiltInRegistries.ITEM
+                .getOptional(net.minecraft.resources.ResourceLocation.parse("cobblemon:relic_coin")).orElseThrow();
+        try {
+            bat.cobblenursery.config.ServerNurserySettings.install(settings);
+            player.getInventory().setItem(0,new ItemStack(coins,10));
+            player.getInventory().setItem(1,new ItemStack(Items.EMERALD,2));
+            h.assertFalse(nursery.unlockYard(player,2).success(),"free unlock skipped locked habitat");
+            h.assertFalse(nursery.unlockYard(player,1).success(),"relic coins counted as emeralds");
+            h.assertTrue(player.getInventory().getItem(1).getCount()==2,"failed unlock consumed emeralds");
+            player.getInventory().setItem(1,new ItemStack(Items.EMERALD,5));
+            h.assertTrue(nursery.unlockYard(player,1).success(),"configured currency did not unlock habitat");
+            h.assertTrue(player.getInventory().getItem(0).getCount()==10,"charged relic coins instead of emeralds");
+            h.assertTrue(player.getInventory().getItem(1).getCount()==2,"charged the wrong number of emeralds");
+            h.assertFalse(nursery.unlockYard(player,1).success(),"unlocked habitat could be purchased twice");
+            h.assertTrue(nursery.unlockYard(player,2).success(),"free next habitat was not unlocked");
+            h.assertTrue(player.getInventory().getItem(1).getCount()==2,"free unlock consumed emeralds");
+        } finally {
+            bat.cobblenursery.config.ServerNurserySettings.install(previous);
+        }
+        h.succeed();
+    }
+
     @GameTest(template=FabricGameTest.EMPTY_STRUCTURE, timeoutTicks=180)
     public void realHoppers(GameTestHelper h) {
         var world=h.getLevel();

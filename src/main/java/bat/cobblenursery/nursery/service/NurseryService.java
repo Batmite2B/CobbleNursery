@@ -1,11 +1,11 @@
 package bat.cobblenursery.nursery.service;
 
+import bat.cobblenursery.config.ServerNurserySettings;
 import bat.cobblenursery.terminal.TerminalDisplayState;
 
 import bat.cobblenursery.breeding.service.BreedingCompatibilityService;
 import bat.cobblenursery.breeding.service.BreedingResultFactory;
 import bat.cobblenursery.CobbleNursery;
-import bat.cobblenursery.config.HabitatUnlockCosts;
 import bat.cobblenursery.config.NurseryConfig;
 import bat.cobblenursery.economy.ItemEconomyService;
 import bat.cobblenursery.economy.EconomyService;
@@ -38,14 +38,11 @@ import java.util.UUID;
 
 public final class NurseryService {
     private static final NurseryService INSTANCE = new NurseryService();
-    private volatile HabitatUnlockCosts habitatUnlockCosts = HabitatUnlockCosts.DEFAULT;
 
     private final BreedingCompatibilityService compatibilityService = new BreedingCompatibilityService();
     private final BreedingResultFactory breedingResultFactory = new BreedingResultFactory();
     private final EconomyService economyService = new ItemEconomyService(
             ResourceLocation.fromNamespaceAndPath("batcg", "pokedollar"));
-    private final EconomyService habitatEconomyService = new ItemEconomyService(
-            ResourceLocation.fromNamespaceAndPath("cobblemon", "relic_coin"));
 
     private NurseryService() {
     }
@@ -145,7 +142,7 @@ public final class NurseryService {
         }
 
         long now = System.currentTimeMillis();
-        long durationMs = NurseryConfig.DEFAULT.baseDurationMinutes() * 60_000L;
+        long durationMs = cycleDurationMs();
         NurseryProcessRecord process = new NurseryProcessRecord(
             UUID.randomUUID(),
             availableProcessSlot,
@@ -346,7 +343,7 @@ public final class NurseryService {
         var result = TerminalDisplayState.builder(state.unlockedYardSlots());
         long now = System.currentTimeMillis();
         for (NurseryYardRecord yard : state.yards()) {
-            boolean full = yard.eggCount() >= NurseryConfig.DEFAULT.yardEggTrayCapacity();
+            boolean full = yard.eggCount() >= ServerNurserySettings.current().breeding().eggsPerHabitat();
             // A completed cycle already blocked by capacity is paused even if the menu hasn't refreshed it.
             boolean paused = full && (yard.pausedForEggSpace() || (yard.active() && yard.isCycleReady(now)));
             result.yard(yard.yardIndex(), yard.active(), paused);
@@ -377,7 +374,7 @@ public final class NurseryService {
             yards,
             eggTray,
             state.selectedYardIndex(),
-            NurseryConfig.DEFAULT.yardEggTrayCapacity()
+            ServerNurserySettings.current().breeding().eggsPerHabitat()
         );
     }
 
@@ -515,7 +512,7 @@ public final class NurseryService {
     }
 
     public boolean canAffordYardUnlock(ServerPlayer player, int yardIndex) {
-        return isValidYardIndex(yardIndex) && habitatEconomyService.canAfford(player, getYardUnlockCost(yardIndex));
+        return isValidYardIndex(yardIndex) && habitatEconomy(ServerNurserySettings.current().unlockItem()).canAfford(player, getYardUnlockCost(yardIndex));
     }
 
     public ActionResult stopYard(ServerPlayer player, int yardIndex) {
@@ -559,7 +556,7 @@ public final class NurseryService {
         if (yard.active()) {
             return new ActionResult(false, "That yard is already breeding.");
         }
-        if (yard.eggCount() >= NurseryConfig.DEFAULT.yardEggTrayCapacity()) {
+        if (yard.eggCount() >= ServerNurserySettings.current().breeding().eggsPerHabitat()) {
             return new ActionResult(false, "That yard is full. Claim its eggs first.");
         }
 
@@ -588,8 +585,10 @@ public final class NurseryService {
         }
 
         int unlockCost = getYardUnlockCost(yardIndex);
+        String unlockItem = ServerNurserySettings.current().unlockItem();
+        var habitatEconomyService = habitatEconomy(unlockItem);
         if (!habitatEconomyService.canAfford(player, unlockCost)) {
-            return new ActionResult(false, "You need " + unlockCost + " relic coins to unlock this yard.");
+            return new ActionResult(false, "You need " + unlockCost + " of " + unlockItem + " to unlock this yard.");
         }
 
         if (!habitatEconomyService.withdraw(player, unlockCost)) {
@@ -609,6 +608,7 @@ public final class NurseryService {
     /** Called on the server thread by a bound terminal, including when the player is offline. */
     public boolean exportEggToHopper(MinecraftServer server, UUID owner, NurserySavedData.EggOutlet outlet,
                                      java.util.function.Predicate<ItemStack> deliver) {
+        if (!ServerNurserySettings.current().automation().terminalExport()) return false;
         var saved = NurserySavedData.find(server);
         if (saved == null) return false;
         int yardMask = saved.eggOutletMask(owner, outlet);
@@ -750,7 +750,7 @@ public final class NurseryService {
             progress,
             yard.completedCycles(),
             yard.eggCount(),
-            NurseryConfig.DEFAULT.yardEggTrayCapacity()
+            ServerNurserySettings.current().breeding().eggsPerHabitat()
         );
     }
 
@@ -810,8 +810,12 @@ public final class NurseryService {
 
         for (NurseryYardRecord yard : new ArrayList<>(state.yards())) {
             NurseryYardRecord nextYard = yard;
-            if (yard.active() && yard.isCycleReady(now)) {
-                if (yard.eggCount() >= NurseryConfig.DEFAULT.yardEggTrayCapacity()) {
+            if ((yard.active() || yard.pausedForEggSpace()) && !ServerNurserySettings.current().breeding().allowDitto()
+                    && yard.hasPair() && (yard.parentA().ditto() || yard.parentB().ditto())) {
+                nextYard = yard.stopCycle();
+                changed = true;
+            } else if (yard.active() && yard.isCycleReady(now)) {
+                if (yard.eggCount() >= ServerNurserySettings.current().breeding().eggsPerHabitat()) {
                     nextYard = yard.pauseForEggSpace();
                 } else if (yard.hasPair()) {
                     GeneratedEggData egg = breedingResultFactory.generate(
@@ -831,7 +835,7 @@ public final class NurseryService {
                     nextYard = yard.stopCycle();
                 }
                 changed = true;
-            } else if (yard.pausedForEggSpace() && yard.eggCount() < NurseryConfig.DEFAULT.yardEggTrayCapacity() && yard.hasPair()) {
+            } else if (yard.pausedForEggSpace() && yard.eggCount() < ServerNurserySettings.current().breeding().eggsPerHabitat() && yard.hasPair()) {
                 nextYard = yard.startCycle(
                     now,
                     now + cycleDurationMs(),
@@ -849,7 +853,7 @@ public final class NurseryService {
     }
 
     private long cycleDurationMs() {
-        return NurseryConfig.DEFAULT.baseDurationMinutes() * 60_000L;
+        return ServerNurserySettings.current().breeding().secondsPerEgg() * 1000L;
     }
 
     private NurserySavedData getOrCreateSavedData(MinecraftServer server) {
@@ -872,12 +876,12 @@ public final class NurseryService {
         return yardIndex < state.unlockedYardSlots();
     }
 
-    public void setHabitatUnlockCosts(HabitatUnlockCosts costs) {
-        this.habitatUnlockCosts = costs;
+    private static EconomyService habitatEconomy(String unlockItem) {
+        return new ItemEconomyService(ResourceLocation.parse(unlockItem));
     }
 
     private int getYardUnlockCost(int yardIndex) {
-        return habitatUnlockCosts.forYardIndex(yardIndex);
+        return ServerNurserySettings.current().costs().forYardIndex(yardIndex);
     }
 
     private long computeYardSeed(ServerPlayer player, int yardIndex, int cycleIndex) {

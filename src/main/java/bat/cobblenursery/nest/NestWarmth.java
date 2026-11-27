@@ -1,5 +1,6 @@
 package bat.cobblenursery.nest;
 
+import bat.cobblenursery.config.ServerNurserySettings;
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import java.util.ArrayDeque;
 import java.util.HashMap;
@@ -26,7 +27,6 @@ import net.minecraft.world.phys.Vec3;
 /** Server-authoritative incubation bonuses. No chunk tickets, client scans or per-egg world queries. */
 public final class NestWarmth {
     private static final int MAX_HORIZONTAL = 12, MAX_VERTICAL = 8, MAX_CELLS = 2048;
-    private static final double CARE_RADIUS = 16.0;
     private static final Direction[] DIRECTIONS = Direction.values();
     private NestWarmth() {}
 
@@ -37,7 +37,7 @@ public final class NestWarmth {
     static java.util.UUID findCaregiver(ServerLevel level, BlockPos pos) {
         Vec3 center = Vec3.atCenterOf(pos);
         for (var e : level.getEntitiesOfClass(PokemonEntity.class,
-                new AABB(center, center).inflate(CARE_RADIUS + 0.001), e -> eligible(e, center))) {
+                new AABB(center, center).inflate(ServerNurserySettings.current().bonuses().caregiverRadius() + 0.001), e -> eligible(e, center))) {
             return e.getUUID();
         }
         return null;
@@ -48,8 +48,9 @@ public final class NestWarmth {
     }
 
     private static boolean eligible(PokemonEntity entity, Vec3 center) {
+        double radius = ServerNurserySettings.current().bonuses().caregiverRadius();
         if (!entity.isAlive() || entity.isRemoved() || entity.getOwnerUUID() == null
-                || entity.distanceToSqr(center) > CARE_RADIUS * CARE_RADIUS) return false;
+                || entity.distanceToSqr(center) > radius * radius) return false;
         var pokemon = entity.getPokemon();
         return NestWarmthRules.qualifies(pokemon.getSpecies().getResourceIdentifier().toString(), pokemon.getAbility().getName());
     }

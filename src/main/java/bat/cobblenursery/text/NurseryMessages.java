@@ -14,6 +14,7 @@ public final class NurseryMessages {
         Map.entry("undiscovered_egg_group", "undiscovered_egg_group"),
         Map.entry("same_pokemon", "same_pokemon"),
         Map.entry("ditto_pair_not_allowed", "ditto_pair_not_allowed"),
+        Map.entry("ditto_disabled", "ditto_disabled"),
         Map.entry("parents_must_have_opposite_genders", "parents_must_have_opposite_genders"),
         Map.entry("no_shared_egg_group", "no_shared_egg_group"),
         Map.entry("compatible", "compatible"),
@@ -72,6 +73,7 @@ public final class NurseryMessages {
         new Template("Returned the pair from yard (\\d+)\\.", "returned"),
         new Template("Started breeding in yard (\\d+)\\.", "started"),
         new Template("You need (\\d+) relic coins to unlock this yard\\.", "cost"),
+        new Template("You need (\\d+) of ([a-z0-9_.-]+:[a-z0-9/._-]+) to unlock this yard\\.", "cost_item"),
         new Template("Unlocked yard (\\d+)\\.", "unlocked"),
         new Template("Forced yard (\\d+) to finish its current cycle\\.", "forced"),
         new Template("Claimed (\\d+) egg\\(s\\) from yard (\\d+)\\.", "claimed"),
@@ -80,6 +82,14 @@ public final class NurseryMessages {
         new Template("(?:This pair cannot breed: |Breeding failed: )([a-z_]+)", "cannot_breed")
     );
     private NurseryMessages() {}
+
+    public static Component itemName(String itemId) {
+        var id = net.minecraft.resources.ResourceLocation.tryParse(itemId);
+        if (id == null) return Component.literal(itemId);
+        return net.minecraft.core.registries.BuiltInRegistries.ITEM.getOptional(id)
+                .<Component>map(item -> new net.minecraft.world.item.ItemStack(item).getHoverName())
+                .orElseGet(() -> Component.literal(itemId));
+    }
 
     public static MutableComponent component(String message) {
         if (message == null || message.isBlank()) return Component.empty();
@@ -91,6 +101,7 @@ public final class NurseryMessages {
             Object[] args = new Object[match.groupCount()];
             for (int i = 0; i < args.length; i++) args[i] = match.group(i + 1);
             if ("cannot_breed".equals(template.key)) args[0] = component(match.group(1));
+            if ("cost_item".equals(template.key)) args[1] = itemName(match.group(2));
             return Component.translatable(PREFIX + template.key, args);
         }
         return Component.literal(message);

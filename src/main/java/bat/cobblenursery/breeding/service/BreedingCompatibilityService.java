@@ -1,5 +1,6 @@
 package bat.cobblenursery.breeding.service;
 
+import bat.cobblenursery.config.ServerNurserySettings;
 import bat.cobblenursery.nursery.model.BreedingCompatibilityResult;
 import bat.cobblenursery.nursery.model.ParentSnapshot;
 
@@ -18,7 +19,8 @@ public final class BreedingCompatibilityService {
             return BreedingCompatibilityResult.failure("ditto_pair_not_allowed");
         }
         if (a.ditto() || b.ditto()) {
-            return BreedingCompatibilityResult.success();
+            return ServerNurserySettings.current().breeding().allowDitto()
+                    ? BreedingCompatibilityResult.success() : BreedingCompatibilityResult.failure("ditto_disabled");
         }
         if (!hasOppositeSex(a, b)) {
             return BreedingCompatibilityResult.failure("parents_must_have_opposite_genders");

@@ -1,12 +1,13 @@
 package bat.cobblenursery.nest;
 
+import bat.cobblenursery.config.ServerNurserySettings;
 import java.util.Map;
 
 /** Quantized cosmetic projection from authoritative data; no individual stats reach the renderer. */
 public final class NestLifeVisual {
     public static final int MAX_TIER=32;
-    // Old saved incubation deadlines can still be up to 30 minutes away.
-    public static final long MAX_REMAINING_MS=1_800_000L;
+    // Client display permits the longest server-configured incubation.
+    public static final long MAX_REMAINING_MS=ServerNurserySettings.MAX_INCUBATION_SECONDS * 1000L;
     public static final long MAX_READY_AGE_MS=3_153_600_000_000L;
     private static final String[] STATS={"hp","attack","defence","special_attack","special_defence","speed"};
     private NestLifeVisual() {}

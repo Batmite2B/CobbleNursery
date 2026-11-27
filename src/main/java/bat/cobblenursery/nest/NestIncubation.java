@@ -1,5 +1,6 @@
 package bat.cobblenursery.nest;
 
+import bat.cobblenursery.config.ServerNurserySettings;
 import java.util.List;
 import java.util.Map;
 
@@ -15,15 +16,19 @@ public final class NestIncubation {
         });
     }
     public static int durationSeconds(Map<String,Integer> ivs) {
-        return durationSeconds(ivs,180);
+        return ServerNurserySettings.current().incubation().durationSeconds(sumIvs(ivs));
     }
-    private static int durationSeconds(Map<String,Integer> ivs,int secondsPerPerfectIv) {
-        int sum = STATS.stream().mapToInt(k -> Math.clamp(ivs.getOrDefault(k,0),0,31)).sum();
-        return Math.clamp((secondsPerPerfectIv*sum+30)/31,60,secondsPerPerfectIv*STATS.size());
+    private static int sumIvs(Map<String,Integer> ivs) {
+        return STATS.stream().mapToInt(k -> Math.clamp(ivs.getOrDefault(k, 0), 0, 31)).sum();
     }
     static boolean acceptsRecoveredDeadline(Map<String,Integer> ivs,long saved,long now) {
-        // Old eggs could have been recovered before the faster default was introduced.
-        return saved>0 && saved<=now+durationSeconds(ivs,300)*1000L;
+        // Older eggs only carry a deadline, not the time that their recovery stamp was issued.
+        return saved > 0 && saved <= now + Math.max(60, (300 * sumIvs(ivs) + 30) / 31) * 1000L;
+    }
+    static boolean acceptsRecoveredDeadline(Map<String,Integer> ivs,long saved,long now,long issued) {
+        if (issued <= 0) return acceptsRecoveredDeadline(ivs, saved, now);
+        // Keep the original deadline even if the admin later shortens incubation.
+        return saved > 0 && issued <= now && saved <= issued + ServerNurserySettings.MAX_INCUBATION_SECONDS * 1000L;
     }
     public static long secondsRemaining(long deadline,long now) {
         return deadline <= now ? 0 : Math.ceilDiv(deadline-now,1000L);

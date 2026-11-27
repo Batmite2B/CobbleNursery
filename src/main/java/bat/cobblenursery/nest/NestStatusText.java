@@ -1,5 +1,6 @@
 package bat.cobblenursery.nest;
 
+import bat.cobblenursery.config.ServerNurserySettings;
 import java.util.Locale;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -15,9 +16,10 @@ final class NestStatusText {
         var time = String.format(Locale.ROOT, "%d:%02d", seconds / 60, seconds % 60);
 
         var details = Component.empty();
-        add(details, "boost_room", NestWarmthRules.ROOM_PERCENT, (mask & NestWarmthRules.ROOM) != 0);
-        add(details, "boost_light", NestWarmthRules.LIGHT_PERCENT, (mask & NestWarmthRules.LIGHT) != 0);
-        add(details, "boost_caregiver", NestWarmthRules.CAREGIVER_PERCENT, (mask & NestWarmthRules.CAREGIVER) != 0);
+        var config = ServerNurserySettings.current().bonuses();
+        add(details, "boost_room", config.shelterPercent(), (mask & NestWarmthRules.ROOM) != 0);
+        add(details, "boost_light", config.lightPercent(), (mask & NestWarmthRules.LIGHT) != 0);
+        add(details, "boost_caregiver", config.caregiverPercent(), (mask & NestWarmthRules.CAREGIVER) != 0);
         if (bonus == 0) return Component.translatable(PREFIX + "remaining_normal", time, details);
         return Component.translatable(PREFIX + "remaining_details", time, bonus, details);
     }

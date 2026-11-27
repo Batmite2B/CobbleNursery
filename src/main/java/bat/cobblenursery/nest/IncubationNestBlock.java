@@ -223,6 +223,7 @@ public final class IncubationNestBlock extends Block implements EntityBlock {
         var stamp=new CompoundTag();
         stamp.putUUID("hatch",seat.hatchId());
         stamp.putLong("ready",seat.readyAt());
+        stamp.putLong("issued",System.currentTimeMillis());
         outer.put(STAMP,stamp);
         recovered.set(DataComponents.CUSTOM_DATA,CustomData.of(outer));
         return recovered;
@@ -264,7 +265,7 @@ public final class IncubationNestBlock extends Block implements EntityBlock {
     private static void deposit(Level level,BlockPos pos,ServerPlayer player,ItemStack held) {
         if (!(level.getBlockEntity(pos) instanceof IncubationNestBlockEntity nest)) return;
         if (!nest.mayAccess(player.getUUID())) { message(player,"private"); return; }
-        int index=NestLayout.firstFree(nest.seatMask());
+        int index=nest.firstAvailableSeat();
         if (index<0) { message(player,"full"); return; }
         var egg=NurseryEggItem.readIncubatableData(held).orElse(null);
         if (egg==null) { message(player,"invalid"); return; }
@@ -289,7 +290,7 @@ public final class IncubationNestBlock extends Block implements EntityBlock {
         CompoundTag stamp=held.getOrDefault(DataComponents.CUSTOM_DATA,CustomData.EMPTY).copyTag().getCompound(STAMP);
         if (stamp.hasUUID("hatch")) {
             long saved=stamp.getLong("ready");
-            if (NestIncubation.acceptsRecoveredDeadline(egg.ivs(),saved,now)) { hatchId=stamp.getUUID("hatch"); ready=saved; }
+            if (NestIncubation.acceptsRecoveredDeadline(egg.ivs(),saved,now,stamp.getLong("issued"))) { hatchId=stamp.getUUID("hatch"); ready=saved; }
         }
         return new IncubationNestBlockEntity.Seat(hatchId,ready,held.copyWithCount(1));
     }

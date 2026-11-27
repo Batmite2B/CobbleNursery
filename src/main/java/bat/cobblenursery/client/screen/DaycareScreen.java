@@ -4,7 +4,7 @@ import bat.cobblenursery.CobbleNursery;
 import bat.cobblenursery.client.NurseryUiSounds;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.sounds.SoundManager;
-import bat.cobblenursery.config.NurseryConfig;
+import bat.cobblenursery.config.ServerNurserySettings;
 import bat.cobblenursery.network.*;
 import bat.cobblenursery.nursery.model.NurseryTransfer;
 import bat.cobblenursery.registry.NurseryRegistry;
@@ -442,6 +442,12 @@ public class DaycareScreen extends Screen {
 
     private boolean priorHabitatOpen(int yardIndex) {
         return yardIndex <= 0 || payload.yards().stream().anyMatch(yard -> yard.yardIndex() == yardIndex - 1 && yard.unlocked());
+    }
+
+    private Component habitatPrice(int cost) {
+        String item = payload.habitatUnlockItem();
+        return ServerNurserySettings.DEFAULT_ITEM.equals(item) ? translated("price", cost)
+                : translated("price_item", cost, bat.cobblenursery.text.NurseryMessages.itemName(item));
     }
 
     private static Component translated(String key, Object... args) {
@@ -1099,7 +1105,7 @@ public class DaycareScreen extends Screen {
             if (!yard.unlocked()) {
                 String titleKey = "locked_" + (yard.yardIndex() + 1);
                 var title = translated(titleKey);
-                var price = translated("price", yard.unlockCost());
+                var price = habitatPrice(yard.unlockCost());
                 int titleWidth = font.width(title.copy().withStyle(style -> style.withFont(nativeLargeFont()).withBold(true)));
                 int priceWidth = font.width(price.copy().withStyle(style -> style.withFont(nativeLargeFont()).withBold(true)));
                 for (var line : NurseryPcNativeText.lockedHabitat(r, titleKey, titleWidth, priceWidth, font.lineHeight, PC_MINT)) {
@@ -1589,7 +1595,7 @@ public class DaycareScreen extends Screen {
         pcDetailRow(g, "iv_picks", yard.inheritedIvCount() + "/6", 94);
         String nature = yard.inheritedNatureId().isBlank() ? translated("random").getString() : rightPanelNatureRollText(yard);
         pcDetailRow(g, "nature", nature, 103);
-        pcDetailRow(g, "shiny", "1/" + NurseryConfig.DEFAULT.shinyOddsDenominator(), 112);
+        pcDetailRow(g, "shiny", "1/" + payload.shinyOddsDenominator(), 112);
         var egg = yard.eggPreview();
         if (egg == null) return;
         var mins = offspringMinimums(yard);
@@ -2006,7 +2012,7 @@ public class DaycareScreen extends Screen {
         drawPcPanelInfoLine(
                 graphics,
                 "Shiny",
-                "1/" + NurseryConfig.DEFAULT.shinyOddsDenominator(),
+                "1/" + payload.shinyOddsDenominator(),
                 leftPos + DETAILS_RESULT_LABEL_X,
                 leftPos + DETAILS_RESULT_VALUE_X,
                 y,
@@ -2419,7 +2425,7 @@ public class DaycareScreen extends Screen {
 
             if (!yard.unlocked()) {
                 DaycareLayout.Point cost = layout.yardLockCostCenter(yard.yardIndex());
-                drawStockCentered(graphics, translated("price", yard.unlockCost()).getString(), cost.x(), cost.y(),
+                drawStockCentered(graphics, habitatPrice(yard.unlockCost()).getString(), cost.x(), cost.y(),
                         layout.yardRect(yard.yardIndex()).width() - 8, 0xFFE9DDE3
                 );
             }
@@ -2486,7 +2492,7 @@ public class DaycareScreen extends Screen {
 
         if (!yard.unlocked()) {
             graphics.drawString(font, "Locked", rect.x() + layout.scaled(7), rect.y() + layout.scaled(26), 0xFFF2C8D1, false);
-            graphics.drawString(font, translated("price", yard.unlockCost()).getString(), rect.x() + layout.scaled(7), rect.y() + layout.scaled(34), 0xFFD7CDD2, false);
+            graphics.drawString(font, habitatPrice(yard.unlockCost()).getString(), rect.x() + layout.scaled(7), rect.y() + layout.scaled(34), 0xFFD7CDD2, false);
             return;
         }
 

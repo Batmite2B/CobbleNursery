@@ -15,3 +15,5 @@ CobbleNursery source code is licensed under the Mozilla Public License 2.0. This
 ## Guide
 
 [Player guide](docs/Guide.md) · [Español](docs/Guia.md)
+
+[Server configuration](docs/habitat-unlock-costs.md) · [Configuración en español](docs/configuracion.md)
