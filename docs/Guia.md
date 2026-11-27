@@ -30,7 +30,14 @@ Al nacer, cada atributo recibe un IV de 0 a 31. Cuanto más alto sea el IV, mayo
 
 **EJEMPLO:** Con un IV mínimo de 23 en PS, la cría tendrá entre 23 y 31 en ese atributo.
 
-- **Objetos recios.** Hay seis, uno por atributo. Equipa el objeto correspondiente a uno de los Pokémon para fijar el IV mínimo. Si una cría tiene un IV más alto, úsala para criar y equípale el objeto recio correspondiente. El mínimo guardado se conserva para las siguientes crías, incluso sin el objeto o si cambias de especie.
+- **Objetos recios.** Hay seis, uno por atributo. El IV del progenitor que lleva el objeto recio es el mínimo para ese atributo. Si ambos llevan el mismo objeto, se usa el IV más alto. Con objetos distintos, se aplican los dos mínimos. La flecha del panel izquierdo muestra los **IVs mínimos** de la cría prevista.
+
+  **EJEMPLO:** Una Eevee con 12 IV en PS lleva la Pesa recia. Sus huevos pueden salir con 12 a 31 en PS. Si uno sale con 24, el próximo huevo de esa misma pareja sigue teniendo un mínimo de 12. Para subirlo a 24, incuba la cría, úsala como progenitora y equípale la Pesa recia.
+
+  ![Pesa recia equipada y 12 PS en la vista previa](screenshots/power-weight-minimum-ivs.png)
+
+  El mínimo pertenece a la pareja actual y depende de sus objetos. No se guarda por jugador ni pasa a otra pareja. Cambiar de pareja o quitar el objeto solo afecta a huevos futuros.
+
 - **Lazo Destino.** Aumenta de tres a cinco la cantidad de atributos de los que se pueden heredar IV de los padres. No garantiza IV perfectos.
 - **Piedra Eterna.** Si solo uno de los padres la lleva, la cría hereda su naturaleza. Si ambos la llevan y tienen naturalezas distintas, puede heredar cualquiera de las dos.
 - **Movimientos huevo.** La cría puede heredar movimientos compatibles que conozcan los padres. La terminal muestra hasta cuatro.

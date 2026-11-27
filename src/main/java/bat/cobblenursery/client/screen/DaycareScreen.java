@@ -895,20 +895,20 @@ public class DaycareScreen extends Screen {
             drawHelpHeadline(g,helpText("inheritance_better"),x+75,y+46,36,1F,PC_MINT);
             return;
         }
-        boolean saved = step == 2;
-        if (saved) {
+        boolean improved = step == 2;
+        if (improved) {
             renderHelpAdult(g,"help:improved",HELP_CHILD,"normal",x+5,y,x+47,10,41,29,partialTick);
         } else {
             renderHelpAdult(g,"help:inheritance_parent",HELP_MOTHER,"female",
                     x+8,y,x+43,13,39,27,partialTick);
-            g.flush();
-            drawHelpPowerItem(g,"power_weight",x+33,y+24,.95F);
         }
+        g.flush();
+        drawHelpPowerItem(g,"power_weight",x+33,y+24,.95F);
         drawHelpArrow(g,x+56,y+21);
         renderHelpAdult(g,"help:next_offspring",HELP_CHILD,"normal",x+65,y,x+97,-10,41,29,partialTick);
-        drawHelpHeadline(g,helpText(saved ? "inheritance_better" : "inheritance_parent_value"),
+        drawHelpHeadline(g,helpText(improved ? "inheritance_better" : "inheritance_parent_value"),
                 x+27,y+44,39,1F,PC_MINT);
-        drawHelpHeadline(g,helpText(saved ? "inheritance_new_minimum" : "inheritance_child_value"),
+        drawHelpHeadline(g,helpText(improved ? "inheritance_new_minimum" : "inheritance_child_value"),
                 x+78,y+44,39,1F,PC_MINT);
     }
 
@@ -1432,19 +1432,16 @@ public class DaycareScreen extends Screen {
             var moves = offspringEggMoveLabels(offspring);
             drawInspectorInfo(g, nature, unknown, moves, true);
         } else {
-            var minimums = offspringMinimums(yard, offspring);
+            var minimums = offspringMinimums(yard);
             NurseryPcNativeText.stats(true,
                     field -> drawNativePcText(g, field, offspringStatLabel(field.key(), minimums)));
         }
     }
 
-    static List<Integer> offspringMinimums(DaycareYardPayload yard, DaycareEggPreviewPayload offspring) {
+    static List<Integer> offspringMinimums(DaycareYardPayload yard) {
         var a = yard.parentA();
         var b = yard.parentB();
-        // Existing v3 RollMin values are persistent lineage, never the seeded v3 IV fields.
         return bat.cobblenursery.breeding.service.IvInheritanceService.guaranteedMinimums(
-                List.of(offspring.hpRollMin(), offspring.attackRollMin(), offspring.defenceRollMin(),
-                        offspring.specialAttackRollMin(), offspring.specialDefenceRollMin(), offspring.speedRollMin()),
                 a == null ? "" : a.heldItemId(), a == null || a.preview() == null ? List.of() : a.preview().ivs(),
                 b == null ? "" : b.heldItemId(), b == null || b.preview() == null ? List.of() : b.preview().ivs());
     }
@@ -1595,12 +1592,12 @@ public class DaycareScreen extends Screen {
         pcDetailRow(g, "shiny", "1/" + NurseryConfig.DEFAULT.shinyOddsDenominator(), 112);
         var egg = yard.eggPreview();
         if (egg == null) return;
-        int[] mins = {egg.hpRollMin(),egg.attackRollMin(),egg.defenceRollMin(),egg.specialAttackRollMin(),egg.specialDefenceRollMin(),egg.speedRollMin()};
+        var mins = offspringMinimums(yard);
         String[] labels = java.util.stream.IntStream.range(0,6).mapToObj(i -> translated("stat_"+i).getString()).toArray(String[]::new);
-        for (int i = 0; i < mins.length; i++) {
+        for (int i = 0; i < mins.size(); i++) {
             int y = 123 + (i % 3) * 12, x = i < 3 ? 18 : 49;
             drawAdaptiveText(g, labels[i], x, y, 14, PC_SOFT, false, true);
-            drawAdaptiveText(g, ivRollRangeText(mins[i]), x + 14, y, 16, PC_TEXT, false, true);
+            drawAdaptiveText(g, ivRollRangeText(mins.get(i)), x + 14, y, 16, PC_TEXT, false, true);
         }
     }
 
@@ -2103,17 +2100,18 @@ public class DaycareScreen extends Screen {
         }
 
         int y = startY + 7;
-        drawPcPanelInfoLine(graphics, "HP", ivRollRangeText(egg.hpRollMin()), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
+        var minimums = offspringMinimums(yard);
+        drawPcPanelInfoLine(graphics, "HP", ivRollRangeText(minimums.get(0)), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
         y += 8;
-        drawPcPanelInfoLine(graphics, "Atk", ivRollRangeText(egg.attackRollMin()), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
+        drawPcPanelInfoLine(graphics, "Atk", ivRollRangeText(minimums.get(1)), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
         y += 8;
-        drawPcPanelInfoLine(graphics, "Def", ivRollRangeText(egg.defenceRollMin()), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
+        drawPcPanelInfoLine(graphics, "Def", ivRollRangeText(minimums.get(2)), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
         y += 8;
-        drawPcPanelInfoLine(graphics, "SpA", ivRollRangeText(egg.specialAttackRollMin()), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
+        drawPcPanelInfoLine(graphics, "SpA", ivRollRangeText(minimums.get(3)), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
         y += 8;
-        drawPcPanelInfoLine(graphics, "SpD", ivRollRangeText(egg.specialDefenceRollMin()), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
+        drawPcPanelInfoLine(graphics, "SpD", ivRollRangeText(minimums.get(4)), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
         y += 8;
-        drawPcPanelInfoLine(graphics, "Spe", ivRollRangeText(egg.speedRollMin()), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
+        drawPcPanelInfoLine(graphics, "Spe", ivRollRangeText(minimums.get(5)), leftPos + DETAILS_RESULT_LABEL_X, leftPos + DETAILS_RESULT_VALUE_X, y, COLOR_PANEL_SUBTITLE, COLOR_PANEL_VALUE);
     }
 
     private void drawRightPanelStatusAndCompatibility(GuiGraphics graphics) {

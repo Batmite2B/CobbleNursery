@@ -4,8 +4,6 @@ import bat.cobblenursery.nursery.model.BreedingItemSnapshot;
 import bat.cobblenursery.nursery.model.GeneratedEggData;
 import bat.cobblenursery.nursery.model.ParentSnapshot;
 
-import java.util.Map;
-
 public final class BreedingResultFactory {
     private final ChildSpeciesResolver childSpeciesResolver = new ChildSpeciesResolver();
     private final IvInheritanceService ivInheritanceService = new IvInheritanceService();
@@ -17,12 +15,6 @@ public final class BreedingResultFactory {
 
     public GeneratedEggData generate(ParentSnapshot a, ParentSnapshot b, BreedingItemSnapshot itemA,
                                      BreedingItemSnapshot itemB, long seed) {
-        return generate(a, b, itemA, itemB, seed, Map.of());
-    }
-
-    public GeneratedEggData generate(ParentSnapshot a, ParentSnapshot b, BreedingItemSnapshot itemA,
-                                     BreedingItemSnapshot itemB, long seed,
-                                     Map<String, Integer> ivRollFloor) {
         ResolvedChildIdentity childIdentity = childSpeciesResolver.resolveChildIdentity(a, b, itemA, itemB, seed);
         String nature = natureInheritanceService.resolveNature(a, b, itemA, itemB, seed);
         String ability = abilityInheritanceService.resolveInheritedAbility(
@@ -47,7 +39,7 @@ public final class BreedingResultFactory {
             ability,
             inheritedBall,
             inheritedMoves,
-            ivInheritanceService.generateInheritedIvs(a, b, itemA, itemB, ivRollFloor, seed),
+            ivInheritanceService.generateInheritedIvs(a, b, itemA, itemB, seed),
             shiny
         );
     }

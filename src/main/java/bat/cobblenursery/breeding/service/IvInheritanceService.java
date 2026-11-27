@@ -22,16 +22,10 @@ public final class IvInheritanceService {
     public Map<String, Integer> generateInheritedIvs(ParentSnapshot a, ParentSnapshot b,
                                                      BreedingItemSnapshot itemA, BreedingItemSnapshot itemB,
                                                      long seed) {
-        return generateInheritedIvs(a, b, itemA, itemB, Map.of(), seed);
-    }
-
-    public Map<String, Integer> generateInheritedIvs(ParentSnapshot a, ParentSnapshot b,
-                                                     BreedingItemSnapshot itemA, BreedingItemSnapshot itemB,
-                                                     Map<String, Integer> rollMinimums, long seed) {
         Random random = new Random(seed);
         Map<String, Integer> result = new LinkedHashMap<>();
         for (String stat : STAT_ORDER) {
-            result.put(stat, randomIv(random, rollMinimums.getOrDefault(stat, 0)));
+            result.put(stat, random.nextInt(32));
         }
 
         int inheritedCount = hasDestinyKnot(itemA, itemB) ? 5 : 3;
@@ -44,14 +38,6 @@ public final class IvInheritanceService {
             result.put(stat, getIv(source, stat));
         }
         return result;
-    }
-
-    private int randomIv(Random random, int minimum) {
-        int clampedMinimum = Math.max(0, Math.min(31, minimum));
-        if (clampedMinimum >= 31) {
-            return 31;
-        }
-        return clampedMinimum + random.nextInt(32 - clampedMinimum);
     }
 
     private boolean hasDestinyKnot(BreedingItemSnapshot itemA, BreedingItemSnapshot itemB) {
@@ -70,14 +56,14 @@ public final class IvInheritanceService {
     }
 
     /** Seed-independent floor in the same stat order as the v3 parent and offspring previews. */
-    public static List<Integer> guaranteedMinimums(List<Integer> lineage, String itemA, List<Integer> ivsA,
+    public static List<Integer> guaranteedMinimums(String itemA, List<Integer> ivsA,
                                                    String itemB, List<Integer> ivsB) {
         String statA = powerItemStat(new BreedingItemSnapshot(itemA, 1));
         String statB = powerItemStat(new BreedingItemSnapshot(itemB, 1));
         List<Integer> result = new ArrayList<>(STAT_ORDER.size());
         for (int i = 0; i < STAT_ORDER.size(); i++) {
             String stat = STAT_ORDER.get(i);
-            int floor = Math.clamp(lineage.get(i), 0, 31);
+            int floor = 0;
             if (stat.equals(statA) && ivsA.size() == STAT_ORDER.size()) floor = Math.max(floor, ivsA.get(i));
             if (stat.equals(statB) && ivsB.size() == STAT_ORDER.size()) floor = Math.max(floor, ivsB.get(i));
             result.add(Math.clamp(floor, 0, 31));
@@ -110,7 +96,7 @@ public final class IvInheritanceService {
         return null;
     }
 
-    private int getIv(ParentSnapshot snapshot, String stat) {
+    private static int getIv(ParentSnapshot snapshot, String stat) {
         return switch (stat) {
             case "hp" -> snapshot.hpIv();
             case "attack" -> snapshot.attackIv();

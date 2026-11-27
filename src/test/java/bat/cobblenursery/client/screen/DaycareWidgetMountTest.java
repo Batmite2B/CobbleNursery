@@ -340,7 +340,7 @@ class DaycareWidgetMountTest {
         }
     }
 
-    @Test void offspringMinimumIvRowsNeverRevealSeededV3Results() {
+    @Test void offspringMinimumIvRowsIgnoreLegacyFloorsAndSeededResults() {
         var profile = new bat.cobblenursery.network.DaycareParentPreview("",5,"",List.of(),List.of(),
                 List.of(27,15,9,19,23,25), List.of(0,0,0,0,0,0));
         var a = new DaycareParentPayload(UUID.randomUUID(),"cobblemon:ditto","normal","GENDERLESS",
@@ -355,8 +355,8 @@ class DaycareWidgetMountTest {
                     net.minecraft.core.RegistryAccess.EMPTY);
             DaycareYardPayload decoded;
             try { DaycareYardPayload.write(buf,yard); decoded=DaycareYardPayload.read(buf); } finally { buf.release(); }
-            var minimums = DaycareScreen.offspringMinimums(decoded,decoded.eggPreview());
-            assertEquals(List.of(27,0,13,0,0,31),minimums);
+            var minimums = DaycareScreen.offspringMinimums(decoded);
+            assertEquals(List.of(27,0,0,0,0,0),minimums);
             assertEquals("gui.cobblenursery.pc.minimum_ivs",
                     assertInstanceOf(net.minecraft.network.chat.contents.TranslatableContents.class,
                             DaycareScreen.offspringStatLabel("ui.stats.ivs",minimums).getContents()).getKey());

@@ -70,28 +70,48 @@ class IvInheritanceServiceTest {
     }
 
     @Test
-    void lineageFloorChangesTheRollRangeUpToThirtyOne() {
-        boolean sawThirty = false;
-        boolean sawThirtyOne = false;
-
-        for (long seed = 0; seed < 512; seed++) {
-            Map<String, Integer> ivs = service.generateInheritedIvs(
-                snapshot(10, 30, 10, 10, 10, 10),
-                snapshot(10, 30, 10, 10, 10, 10),
-                BreedingItemSnapshot.EMPTY,
-                BreedingItemSnapshot.EMPTY,
-                Map.of("attack", 30),
-                seed
-            );
-
-            int attackIv = ivs.get("attack");
-            assertTrue(attackIv >= 30 && attackIv <= 31);
-            sawThirty |= attackIv == 30;
-            sawThirtyOne |= attackIv == 31;
+    void successiveEggsDoNotRaiseThePairsMinimum() {
+        var low = snapshot(10, 0, 0, 0, 0, 0);
+        var mate = snapshot(3, 0, 0, 0, 0, 0);
+        var weight = new BreedingItemSnapshot("cobblemon:power_weight", 1);
+        var empty = BreedingItemSnapshot.EMPTY;
+        var highEgg = service.generateInheritedIvs(low, mate, weight, empty, 17).get("hp");
+        assertTrue(highEgg > 10);
+        boolean sawTen = false;
+        for (long seed = 0; seed < 100; seed++) {
+            int hp = service.generateInheritedIvs(low, mate, weight, empty, seed * 1_000_003L).get("hp");
+            assertTrue(hp >= 10 && hp <= 31);
+            sawTen |= hp == 10;
         }
+        assertTrue(sawTen);
+    }
 
-        assertTrue(sawThirty);
-        assertTrue(sawThirtyOne);
+    @Test
+    void improvingTheParentRaisesTheMinimumAndRemovingTheItemDropsIt() {
+        var better = snapshot(24, 0, 0, 0, 0, 0);
+        var mate = snapshot(3, 0, 0, 0, 0, 0);
+        var weight = new BreedingItemSnapshot("cobblemon:power_weight", 1);
+        var empty = BreedingItemSnapshot.EMPTY;
+        boolean sawBelowTwentyFourWithoutItem = false;
+        for (long seed = 0; seed < 100; seed++) {
+            var equipped = service.generateInheritedIvs(better, mate, weight, empty, seed * 1_000_003L);
+            assertTrue(equipped.get("hp") >= 24);
+            var unequipped = service.generateInheritedIvs(better, mate, empty, empty, seed * 1_000_003L);
+            sawBelowTwentyFourWithoutItem |= unequipped.get("hp") < 24;
+        }
+        assertTrue(sawBelowTwentyFourWithoutItem);
+    }
+
+    @Test
+    void pairPreviewUsesBothItemsAndTheHigherParentForTheSameStat() {
+        var left = List.of(12, 29, 0, 0, 0, 0);
+        var right = List.of(24, 20, 0, 0, 0, 0);
+        assertEquals(List.of(24, 0, 0, 0, 0, 0), IvInheritanceService.guaranteedMinimums(
+            "cobblemon:power_weight", left, "cobblemon:power_weight", right));
+        assertEquals(List.of(12, 20, 0, 0, 0, 0), IvInheritanceService.guaranteedMinimums(
+            "cobblemon:power_weight", left, "cobblemon:power_bracer", right));
+        assertEquals(List.of(0, 0, 0, 0, 0, 0), IvInheritanceService.guaranteedMinimums(
+            "cobblemon:destiny_knot", left, "", right));
     }
 
     private ParentSnapshot snapshot(int hp, int atk, int def, int spa, int spd, int spe) {

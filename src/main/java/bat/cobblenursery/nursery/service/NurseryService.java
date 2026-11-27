@@ -4,7 +4,6 @@ import bat.cobblenursery.terminal.TerminalDisplayState;
 
 import bat.cobblenursery.breeding.service.BreedingCompatibilityService;
 import bat.cobblenursery.breeding.service.BreedingResultFactory;
-import bat.cobblenursery.breeding.service.LineageService;
 import bat.cobblenursery.CobbleNursery;
 import bat.cobblenursery.config.HabitatUnlockCosts;
 import bat.cobblenursery.config.NurseryConfig;
@@ -20,7 +19,6 @@ import bat.cobblenursery.nursery.model.NurseryProcessStatus;
 import bat.cobblenursery.nursery.model.NurseryYardRecord;
 import bat.cobblenursery.nursery.model.NurseryTransfer;
 import bat.cobblenursery.nursery.model.ParentSnapshot;
-import bat.cobblenursery.nursery.storage.LineageSavedData;
 import bat.cobblenursery.nursery.storage.NurserySavedData;
 import bat.cobblenursery.registry.NurseryRegistry;
 import com.cobblemon.mod.common.Cobblemon;
@@ -44,7 +42,6 @@ public final class NurseryService {
 
     private final BreedingCompatibilityService compatibilityService = new BreedingCompatibilityService();
     private final BreedingResultFactory breedingResultFactory = new BreedingResultFactory();
-    private final LineageService lineageService = new LineageService();
     private final EconomyService economyService = new ItemEconomyService(
             ResourceLocation.fromNamespaceAndPath("batcg", "pokedollar"));
     private final EconomyService habitatEconomyService = new ItemEconomyService(
@@ -90,7 +87,7 @@ public final class NurseryService {
         long seed = computeSeed(player, partySlotA, partySlotB);
 
         GeneratedEggData generatedEgg = compatibility.compatible()
-            ? generateEggDataForPlayer(player, parentA, parentB, itemA, itemB, seed, false)
+            ? breedingResultFactory.generate(parentA, parentB, itemA, itemB, seed)
             : null;
 
         return Optional.of(new PreviewResult(parentA, parentB, itemA, itemB, compatibility, generatedEgg, seed));
@@ -172,14 +169,12 @@ public final class NurseryService {
             return record.withGeneratedEgg(record.generatedEgg());
         }
 
-        GeneratedEggData eggData = generateEggDataForPlayer(
-            player,
+        GeneratedEggData eggData = breedingResultFactory.generate(
             record.parentA(),
             record.parentB(),
             record.itemA(),
             record.itemB(),
-            record.breedingSeed(),
-            true
+            record.breedingSeed()
         );
         return record.withGeneratedEgg(eggData);
     }
@@ -715,7 +710,7 @@ public final class NurseryService {
                 ? "empty"
                 : "waiting_for_second_parent");
         GeneratedEggData previewEgg = yard.hasPair() && compatibility.compatible()
-            ? generateEggDataForPlayer(player, yard.parentA(), yard.parentB(), yard.itemA(), yard.itemB(), previewSeedForView(yard), false)
+            ? breedingResultFactory.generate(yard.parentA(), yard.parentB(), yard.itemA(), yard.itemB(), previewSeedForView(yard))
             : null;
         long now = System.currentTimeMillis();
         long remainingMs = yard.active() ? Math.max(0L, yard.cycleReadyAtEpochMs() - now) : 0L;
@@ -819,15 +814,12 @@ public final class NurseryService {
                 if (yard.eggCount() >= NurseryConfig.DEFAULT.yardEggTrayCapacity()) {
                     nextYard = yard.pauseForEggSpace();
                 } else if (yard.hasPair()) {
-                    GeneratedEggData egg = generateEggData(
-                        server,
-                        playerId,
+                    GeneratedEggData egg = breedingResultFactory.generate(
                         yard.parentA(),
                         yard.parentB(),
                         yard.itemA(),
                         yard.itemB(),
-                        yard.cycleSeed(),
-                        true
+                        yard.cycleSeed()
                     );
                     NurseryEggTrayEntry yardEgg = new NurseryEggTrayEntry(UUID.randomUUID(), yard.yardIndex(), egg, now);
                     nextYard = yard.addEgg(yardEgg).markCycleCompleted().startCycle(
@@ -861,7 +853,6 @@ public final class NurseryService {
     }
 
     private NurserySavedData getOrCreateSavedData(MinecraftServer server) {
-        ensurePersistentDataLoaded(server);
         return NurserySavedData.get(server);
     }
 
@@ -871,11 +862,6 @@ public final class NurseryService {
             return NurseryPlayerState.createDefault(player.getUUID());
         }
         return savedData.find(player.getUUID()).orElseGet(() -> NurseryPlayerState.createDefault(player.getUUID()));
-    }
-
-    private void ensurePersistentDataLoaded(MinecraftServer server) {
-        NurserySavedData.get(server);
-        LineageSavedData.get(server);
     }
 
     private boolean isValidYardIndex(int yardIndex) {
@@ -908,53 +894,6 @@ public final class NurseryService {
 
     private long previewSeedForView(NurseryYardRecord yard) {
         return yard.cycleSeed() != 0L ? yard.cycleSeed() : ((long) yard.yardIndex() << 32) ^ yard.completedCycles();
-    }
-
-    private GeneratedEggData generateEggDataForPlayer(ServerPlayer player, ParentSnapshot parentA, ParentSnapshot parentB,
-                                                      BreedingItemSnapshot itemA, BreedingItemSnapshot itemB,
-                                                      long seed, boolean updateLineage) {
-        return generateEggData(player.server, player.getUUID(), parentA, parentB, itemA, itemB, seed, updateLineage);
-    }
-
-    private GeneratedEggData generateEggData(MinecraftServer server, UUID playerId,
-                                             ParentSnapshot parentA, ParentSnapshot parentB,
-                                             BreedingItemSnapshot itemA, BreedingItemSnapshot itemB,
-                                             long seed, boolean updateLineage) {
-        var rollFloor = lineageService.getLineageRollFloor(server, playerId);
-        GeneratedEggData generatedEgg = breedingResultFactory.generate(
-            parentA,
-            parentB,
-            itemA,
-            itemB,
-            seed,
-            rollFloor
-        );
-        // Parent inheritance can overwrite a rolled stat, so enforce the floor on the final egg.
-        var adjustedIvs = new java.util.LinkedHashMap<>(generatedEgg.ivs());
-        rollFloor.forEach((stat, minimum) -> adjustedIvs.merge(stat, minimum, Math::max));
-
-        GeneratedEggData finalEgg = new GeneratedEggData(
-            generatedEgg.childSpeciesId(),
-            generatedEgg.childFormId(),
-            generatedEgg.natureId(),
-            generatedEgg.inheritedAbilityId(),
-            generatedEgg.inheritedBallId(),
-            generatedEgg.inheritedMoveIds(),
-            adjustedIvs,
-            generatedEgg.shiny()
-        );
-
-        if (updateLineage) {
-            lineageService.updateLineageFromPowerItems(
-                server,
-                playerId,
-                finalEgg.ivs(),
-                itemA,
-                itemB
-            );
-        }
-
-        return finalEgg;
     }
 
     private int inheritedIvCount(NurseryYardRecord yard) {

@@ -1,6 +1,5 @@
 package bat.cobblenursery.network;
 
-import bat.cobblenursery.breeding.service.LineageService;
 import bat.cobblenursery.entity.NurseryNurseEntity;
 import bat.cobblenursery.registry.NurseryRegistry;
 import bat.cobblenursery.terminal.NurseryTerminalBlockEntity;
@@ -23,7 +22,6 @@ import java.util.UUID;
 import java.util.WeakHashMap;
 
 public final class NurseryNetworking {
-    private static final LineageService LINEAGE_SERVICE = new LineageService();
 
     // Server-thread only; keyed by player instance, so reconnects and respawns cannot inherit a session.
     private static final Map<ServerPlayer, Session> SESSIONS = new WeakHashMap<>();
@@ -232,7 +230,7 @@ public final class NurseryNetworking {
                 toParentPayload(player, yard.parentB(), yard.itemB()),
                 yard.compatibility().compatible(),
                 yard.compatibility().reason(),
-                toEggPreview(player, yard.previewEgg(), yard.parentA(), yard.parentB()),
+                toEggPreview(yard.previewEgg(), yard.parentA(), yard.parentB()),
                 yard.inheritedIvCount(),
                 yard.inheritedNatureId(),
                 yard.remainingMs(),
@@ -318,12 +316,11 @@ public final class NurseryNetworking {
             }).orElse(null);
     }
 
-    private static DaycareEggPreviewPayload toEggPreview(ServerPlayer player, GeneratedEggData egg,
+    private static DaycareEggPreviewPayload toEggPreview(GeneratedEggData egg,
                                                          ParentSnapshot parentA, ParentSnapshot parentB) {
         if (egg == null) {
             return null;
         }
-        var rollFloor = LINEAGE_SERVICE.getLineageRollFloor(player.server, player.getUUID());
         return new DaycareEggPreviewPayload(
             egg.childSpeciesId(),
             egg.childFormId(),
@@ -334,12 +331,7 @@ public final class NurseryNetworking {
                     : new bat.cobblenursery.breeding.service.EggMoveInheritanceService()
                     .resolveInheritedEggMoves(parentA, parentB, egg.childSpeciesId(), egg.childFormId())
                     .stream().distinct().limit(4).toList(),
-            rollFloor.getOrDefault("hp", 0),
-            rollFloor.getOrDefault("attack", 0),
-            rollFloor.getOrDefault("defence", 0),
-            rollFloor.getOrDefault("special_attack", 0),
-            rollFloor.getOrDefault("special_defence", 0),
-            rollFloor.getOrDefault("speed", 0),
+            0, 0, 0, 0, 0, 0, // Reserved v3 fields; no per-player minimum.
             egg.ivs().getOrDefault("hp", 0),
             egg.ivs().getOrDefault("attack", 0),
             egg.ivs().getOrDefault("defence", 0),

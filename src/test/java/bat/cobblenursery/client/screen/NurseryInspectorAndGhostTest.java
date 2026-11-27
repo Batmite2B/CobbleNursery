@@ -157,18 +157,18 @@ class NurseryInspectorAndGhostTest {
         assertEquals("", bat.cobblenursery.breeding.service.NatureInheritanceService.guaranteedNature(
                 "cobblemon:adamant",none,"cobblemon:modest",none));
     }
-    @Test void minimumIvsCombineLineageAndPowerFloorsNeverDestinyKnotOrSeededRoll() {
+    @Test void minimumIvsUseOnlyTheCurrentEquippedParents() {
         var minimums = bat.cobblenursery.breeding.service.IvInheritanceService.guaranteedMinimums(
-                List.of(1,22,0,0,0,0), "cobblemon:power_bracer", List.of(31,7,12,14,16,20),
+                "cobblemon:power_bracer", List.of(31,7,12,14,16,20),
                 "cobblemon:power_bracer", List.of(5,28,27,25,23,21));
-        assertEquals(List.of(1,28,0,0,0,0),minimums);
+        assertEquals(List.of(0,28,0,0,0,0),minimums);
         assertEquals(List.of(31,0,0,0,0,21),
                 bat.cobblenursery.breeding.service.IvInheritanceService.guaranteedMinimums(
-                        List.of(0,0,0,0,0,0), "cobblemon:power_weight", List.of(31,31,31,31,31,31),
+                        "cobblemon:power_weight", List.of(31,31,31,31,31,31),
                         "cobblemon:power_anklet", List.of(21,21,21,21,21,21)));
-        assertEquals(List.of(0,22,0,31,0,0),
+        assertEquals(List.of(0,0,0,0,0,0),
                 bat.cobblenursery.breeding.service.IvInheritanceService.guaranteedMinimums(
-                        List.of(-1,22,0,32,0,0), "cobblemon:destiny_knot", List.of(31,31,31,31,31,31),
+                        "cobblemon:destiny_knot", List.of(31,31,31,31,31,31),
                         "cobblemon:power_weight", List.of()));
     }
 }

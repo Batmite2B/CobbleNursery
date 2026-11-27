@@ -30,7 +30,14 @@ An individual value (IV) is a number from 0 to 31 that a Pokémon receives at bi
 
 **Example:** If the minimum HP IV is 23, the offspring’s HP IV will be between 23 and 31.
 
-- **Power Items:** There are six, one per stat. Give a parent the matching Power Item to set the minimum for that stat. If you hatch a Pokémon with a higher IV, breed it with the corresponding Power Item to raise the minimum. Saved minimums apply to future offspring even without the item and across species.
+- **Power Items:** There are six, one per stat. The equipped parent’s IV is the minimum for that stat. If both parents hold the same item, the higher IV sets the minimum. Different Power Items set both minimums. Use the arrow on the left panel to see the offspring’s **Minimum IVs**.
+
+  **Example:** An Eevee with 12 HP IV holds a Power Weight. Its eggs can roll 12–31 HP IV. If one rolls 24, the same pair’s next egg still has a minimum of 12. To raise the minimum to 24, hatch that egg, use the offspring as a parent, and give it the Power Weight.
+
+  ![Power Weight equipped and 12 HP in the offspring preview](screenshots/power-weight-minimum-ivs.png)
+
+  The minimum depends on the current pair and their items. It is not saved per player or carried over to another pair. Swapping parents or removing the item only affects future eggs.
+
 - **Destiny Knot:** Increases the number of stats eligible for parental IV inheritance from three to five. It does not make those IVs perfect.
 - **Everstone:** If just one parent holds an Everstone, the offspring inherits that parent’s nature. When both hold one and their natures differ, either nature can be inherited.
 - **Egg Moves:** The offspring can inherit compatible Egg Moves known by its parents. The terminal can display up to four.
