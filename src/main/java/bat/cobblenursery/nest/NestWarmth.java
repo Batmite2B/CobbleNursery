@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.FenceBlock;
 import net.minecraft.world.level.block.FenceGateBlock;
 import net.minecraft.world.level.block.IronBarsBlock;
+import net.minecraft.world.level.block.ScaffoldingBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.WallBlock;
@@ -95,6 +96,11 @@ public final class NestWarmth {
         if (level.isOutsideBuildHeight(pos) || !level.hasChunkAt(pos)) return -1;
         var state = level.getBlockState(pos);
         var block = state.getBlock();
+        if (block instanceof IncubationNestBlock && state.getValue(IncubationNestBlock.FRAMED))
+            return ShelterGeometry.RACK;
+        if (block instanceof ScaffoldingBlock
+                && state.getValue(ScaffoldingBlock.DISTANCE) < ScaffoldingBlock.STABILITY_MAX_DISTANCE)
+            return ShelterGeometry.RACK;
         if (block instanceof DoorBlock || block instanceof TrapDoorBlock || block instanceof FenceGateBlock)
             return state.getValue(BlockStateProperties.OPEN) ? ShelterGeometry.OPEN : ShelterGeometry.COVER;
         if (Block.isShapeFullBlock(state.getCollisionShape(level, pos))) return ShelterGeometry.SOLID;

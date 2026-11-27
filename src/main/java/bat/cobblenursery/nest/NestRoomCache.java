@@ -33,7 +33,9 @@ public final class NestRoomCache {
     }
 
     public static void blockChanged(ServerLevel level, BlockPos pos, BlockState before, BlockState after) {
-        if (before == after || (before.getBlock() == after.getBlock() && before.getBlock() instanceof IncubationNestBlock)) return;
+        if (before == after) return;
+        if (before.getBlock() == after.getBlock() && before.getBlock() instanceof IncubationNestBlock
+                && before.getValue(IncubationNestBlock.FRAMED).equals(after.getValue(IncubationNestBlock.FRAMED))) return;
         var index = LEVELS.get(level);
         if (index == null || index.rooms.isEmpty()) return;
         index.invalidate(pos.asLong());
