@@ -6,13 +6,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-public final class BatcgEconomyService implements EconomyService {
-    private static final ResourceLocation POKEDOLLAR_ID =
-        ResourceLocation.fromNamespaceAndPath("batcg", "pokedollar");
+public final class ItemEconomyService implements EconomyService {
+    private final ResourceLocation currencyId;
+    public ItemEconomyService(ResourceLocation currencyId) {
+        this.currencyId = currencyId;
+    }
 
     @Override
     public boolean canAfford(ServerPlayer player, int amount) {
-        return countPokedollars(player) >= amount;
+        return countCurrency(player) >= amount;
     }
 
     @Override
@@ -21,7 +23,7 @@ public final class BatcgEconomyService implements EconomyService {
             return true;
         }
 
-        Item currency = getPokedollarItem();
+        Item currency = getCurrencyItem();
         if (currency == null || !canAfford(player, amount)) {
             return false;
         }
@@ -51,7 +53,7 @@ public final class BatcgEconomyService implements EconomyService {
             return;
         }
 
-        Item currency = getPokedollarItem();
+        Item currency = getCurrencyItem();
         if (currency == null) {
             return;
         }
@@ -63,8 +65,8 @@ public final class BatcgEconomyService implements EconomyService {
         player.getInventory().setChanged();
     }
 
-    private int countPokedollars(ServerPlayer player) {
-        Item currency = getPokedollarItem();
+    private int countCurrency(ServerPlayer player) {
+        Item currency = getCurrencyItem();
         if (currency == null) {
             return 0;
         }
@@ -79,7 +81,7 @@ public final class BatcgEconomyService implements EconomyService {
         return total;
     }
 
-    private Item getPokedollarItem() {
-        return BuiltInRegistries.ITEM.getOptional(POKEDOLLAR_ID).orElse(null);
+    private Item getCurrencyItem() {
+        return BuiltInRegistries.ITEM.getOptional(currencyId).orElse(null);
     }
 }

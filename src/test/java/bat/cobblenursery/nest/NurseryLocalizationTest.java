@@ -26,8 +26,8 @@ class NurseryLocalizationTest {
         }
     }
 
-    @Test void legacyWireFailuresBecomeClientTranslationsWithNestedLocalizedReason() {
-        var fee=(TranslatableContents)NurseryMessages.component("You need 128 pokedollars to unlock this yard.").getContents();
+    @Test void wireFailuresBecomeClientTranslationsWithNestedLocalizedReason() {
+        var fee=(TranslatableContents)NurseryMessages.component("You need 128 relic coins to unlock this yard.").getContents();
         assertEquals("gui.cobblenursery.feedback.cost",fee.getKey());
         assertArrayEquals(new Object[]{"128"},fee.getArgs());
         var pair=(TranslatableContents)NurseryMessages.component("This pair cannot breed: no_shared_egg_group").getContents();

@@ -225,7 +225,7 @@ public final class NurseryNetworking {
             .map(yard -> new DaycareYardPayload(
                 yard.yardIndex(),
                 yard.unlocked(),
-                yard.unlockCostPokedollars(),
+                yard.unlockCost(),
                 yard.unlocked() || NurseryService.getInstance().canAffordYardUnlock(player, yard.yardIndex()),
                 yard.visualState().name(),
                 toParentPayload(player, yard.parentA(), yard.itemA()),

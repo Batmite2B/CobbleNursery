@@ -5,7 +5,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 public record DaycareYardPayload(
     int yardIndex,
     boolean unlocked,
-    int unlockCostPokedollars,
+    int unlockCost,
     boolean canAffordUnlock,
     String visualState,
     DaycareParentPayload parentA,
@@ -24,7 +24,7 @@ public record DaycareYardPayload(
     public static void write(RegistryFriendlyByteBuf buf, DaycareYardPayload payload) {
         buf.writeVarInt(payload.yardIndex());
         buf.writeBoolean(payload.unlocked());
-        buf.writeVarInt(payload.unlockCostPokedollars());
+        buf.writeVarInt(payload.unlockCost());
         buf.writeBoolean(payload.canAffordUnlock());
         buf.writeUtf(payload.visualState());
         buf.writeBoolean(payload.parentA() != null);

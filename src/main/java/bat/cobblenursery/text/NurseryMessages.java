@@ -71,7 +71,7 @@ public final class NurseryMessages {
         new Template("Assigned (.+) to yard (\\d+)\\.", "assigned"),
         new Template("Returned the pair from yard (\\d+)\\.", "returned"),
         new Template("Started breeding in yard (\\d+)\\.", "started"),
-        new Template("You need (\\d+) pokedollars to unlock this yard\\.", "cost"),
+        new Template("You need (\\d+) relic coins to unlock this yard\\.", "cost"),
         new Template("Unlocked yard (\\d+)\\.", "unlocked"),
         new Template("Forced yard (\\d+) to finish its current cycle\\.", "forced"),
         new Template("Claimed (\\d+) egg\\(s\\) from yard (\\d+)\\.", "claimed"),

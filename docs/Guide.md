@@ -40,7 +40,7 @@ An individual value (IV) is a number from 0 to 31 that a Pokémon receives at bi
 
 The first habitat is unlocked by default. The terminal has four habitat tabs, and each unlocked habitat can run its own pair. Select a locked tab to see its price. Servers can configure those prices. The terminal’s heart indicates active breeding; the exclamation mark indicates that the egg tray needs attention.
 
-![The terminal shows a locked habitat and its unlock price](screenshots/locked-habitat-detail.png)
+Habitats 2, 3, and 4 cost **64, 128, and 192 Relic Coins** by default. No extra economy mod is needed.
 
 ## Incubation Nests
 

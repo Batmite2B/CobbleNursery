@@ -40,7 +40,7 @@ Al nacer, cada atributo recibe un IV de 0 a 31. Cuanto más alto sea el IV, mayo
 
 El primer patio está desbloqueado. La terminal tiene cuatro pestañas y cada patio desbloqueado puede criar con su propia pareja. Selecciona una pestaña bloqueada para ver el precio. Los servidores pueden ajustar estos precios. El corazón de la terminal indica crianza activa y el signo de exclamación avisa de que hay que recoger huevos.
 
-![Patio bloqueado y precio de desbloqueo](screenshots/locked-habitat-detail.png)
+Los patios 2, 3 y 4 cuestan **64, 128 y 192 monedas reliquia** por defecto. No necesitas un mod de economía adicional.
 
 ## Nidos de Incubación
 

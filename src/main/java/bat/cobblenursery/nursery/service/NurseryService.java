@@ -8,7 +8,7 @@ import bat.cobblenursery.breeding.service.LineageService;
 import bat.cobblenursery.CobbleNursery;
 import bat.cobblenursery.config.HabitatUnlockCosts;
 import bat.cobblenursery.config.NurseryConfig;
-import bat.cobblenursery.economy.BatcgEconomyService;
+import bat.cobblenursery.economy.ItemEconomyService;
 import bat.cobblenursery.economy.EconomyService;
 import bat.cobblenursery.nursery.model.BreedingCompatibilityResult;
 import bat.cobblenursery.nursery.model.BreedingItemSnapshot;
@@ -27,6 +27,7 @@ import com.cobblemon.mod.common.Cobblemon;
 import com.cobblemon.mod.common.api.pokemon.stats.Stats;
 import com.cobblemon.mod.common.api.storage.party.PlayerPartyStore;
 import com.cobblemon.mod.common.pokemon.Pokemon;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -44,7 +45,10 @@ public final class NurseryService {
     private final BreedingCompatibilityService compatibilityService = new BreedingCompatibilityService();
     private final BreedingResultFactory breedingResultFactory = new BreedingResultFactory();
     private final LineageService lineageService = new LineageService();
-    private final EconomyService economyService = new BatcgEconomyService();
+    private final EconomyService economyService = new ItemEconomyService(
+            ResourceLocation.fromNamespaceAndPath("batcg", "pokedollar"));
+    private final EconomyService habitatEconomyService = new ItemEconomyService(
+            ResourceLocation.fromNamespaceAndPath("cobblemon", "relic_coin"));
 
     private NurseryService() {
     }
@@ -516,7 +520,7 @@ public final class NurseryService {
     }
 
     public boolean canAffordYardUnlock(ServerPlayer player, int yardIndex) {
-        return isValidYardIndex(yardIndex) && economyService.canAfford(player, getYardUnlockCost(yardIndex));
+        return isValidYardIndex(yardIndex) && habitatEconomyService.canAfford(player, getYardUnlockCost(yardIndex));
     }
 
     public ActionResult stopYard(ServerPlayer player, int yardIndex) {
@@ -589,11 +593,11 @@ public final class NurseryService {
         }
 
         int unlockCost = getYardUnlockCost(yardIndex);
-        if (!economyService.canAfford(player, unlockCost)) {
-            return new ActionResult(false, "You need " + unlockCost + " pokedollars to unlock this yard.");
+        if (!habitatEconomyService.canAfford(player, unlockCost)) {
+            return new ActionResult(false, "You need " + unlockCost + " relic coins to unlock this yard.");
         }
 
-        if (!economyService.withdraw(player, unlockCost)) {
+        if (!habitatEconomyService.withdraw(player, unlockCost)) {
             return new ActionResult(false, "Could not pay the yard unlock fee.");
         }
 
@@ -1062,7 +1066,7 @@ public final class NurseryService {
     public record DaycareYardView(
         int yardIndex,
         boolean unlocked,
-        int unlockCostPokedollars,
+        int unlockCost,
         YardVisualState visualState,
         ParentSnapshot parentA,
         ParentSnapshot parentB,

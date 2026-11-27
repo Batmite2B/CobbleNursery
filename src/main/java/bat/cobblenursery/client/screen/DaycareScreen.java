@@ -356,7 +356,7 @@ public class DaycareScreen extends Screen {
                     priorHabitatOpen(index) && yard.canAffordUnlock(), () -> {
                         if (!unlockConfirming(yard)) {
                             unlockConfirmationYard = index;
-                            unlockConfirmationPrice = yard.unlockCostPokedollars();
+                            unlockConfirmationPrice = yard.unlockCost();
                             rebuildWidgets();
                             return;
                         }
@@ -408,7 +408,7 @@ public class DaycareScreen extends Screen {
     }
 
     private boolean unlockConfirming(DaycareYardPayload yard) {
-        return unlockConfirmationYard == yard.yardIndex() && unlockConfirmationPrice == yard.unlockCostPokedollars()
+        return unlockConfirmationYard == yard.yardIndex() && unlockConfirmationPrice == yard.unlockCost()
                 && priorHabitatOpen(yard.yardIndex()) && yard.canAffordUnlock();
     }
 
@@ -417,7 +417,7 @@ public class DaycareScreen extends Screen {
         int unlocked = 0;
         for (var option : payload.yards()) if (option.unlocked()) unlocked |= 1 << option.yardIndex();
         if (yard == null) return new Controls(-1, unlocked, -1, false, false, false, false);
-        return new Controls(yard.yardIndex(), unlocked, yard.unlockCostPokedollars(), !yard.unlocked() && priorHabitatOpen(yard.yardIndex())
+        return new Controls(yard.yardIndex(), unlocked, yard.unlockCost(), !yard.unlocked() && priorHabitatOpen(yard.yardIndex())
                 && yard.canAffordUnlock(), canStart(yard), canStop(yard), yard.eggCount() > 0);
     }
 
@@ -1099,7 +1099,7 @@ public class DaycareScreen extends Screen {
             if (!yard.unlocked()) {
                 String titleKey = "locked_" + (yard.yardIndex() + 1);
                 var title = translated(titleKey);
-                var price = translated("price", yard.unlockCostPokedollars());
+                var price = translated("price", yard.unlockCost());
                 int titleWidth = font.width(title.copy().withStyle(style -> style.withFont(nativeLargeFont()).withBold(true)));
                 int priceWidth = font.width(price.copy().withStyle(style -> style.withFont(nativeLargeFont()).withBold(true)));
                 for (var line : NurseryPcNativeText.lockedHabitat(r, titleKey, titleWidth, priceWidth, font.lineHeight, PC_MINT)) {
@@ -2421,7 +2421,7 @@ public class DaycareScreen extends Screen {
 
             if (!yard.unlocked()) {
                 DaycareLayout.Point cost = layout.yardLockCostCenter(yard.yardIndex());
-                drawStockCentered(graphics, yard.unlockCostPokedollars() + "$", cost.x(), cost.y(),
+                drawStockCentered(graphics, translated("price", yard.unlockCost()).getString(), cost.x(), cost.y(),
                         layout.yardRect(yard.yardIndex()).width() - 8, 0xFFE9DDE3
                 );
             }
@@ -2488,7 +2488,7 @@ public class DaycareScreen extends Screen {
 
         if (!yard.unlocked()) {
             graphics.drawString(font, "Locked", rect.x() + layout.scaled(7), rect.y() + layout.scaled(26), 0xFFF2C8D1, false);
-            graphics.drawString(font, yard.unlockCostPokedollars() + "$", rect.x() + layout.scaled(7), rect.y() + layout.scaled(34), 0xFFD7CDD2, false);
+            graphics.drawString(font, translated("price", yard.unlockCost()).getString(), rect.x() + layout.scaled(7), rect.y() + layout.scaled(34), 0xFFD7CDD2, false);
             return;
         }
 
