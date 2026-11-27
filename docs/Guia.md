@@ -57,11 +57,15 @@ Haz clic derecho en un huevo para consultar los bonos de incubación.
 
 | Bono | Condición | Progreso adicional |
 | --- | --- | ---: |
-| Refugio | El nido está en una habitación cerrada | 15 % |
+| Refugio | El nido tiene techo y protección en al menos tres lados | 15 % |
 | Luz | La luz de bloque sobre el nido es de al menos 10 | 15 % |
 | Cuidador | Hay un Pokémon apto a 16 bloques o menos | 30 % |
 
 Togepi, Exeggcute, Chansey, Blissey, Happiny, Vullaby, Togetic, Kangaskhan, Maushold y los Pokémon con Cuerpo Llama pueden cuidar el nido. Los bonos se acumulan. El reloj base sigue avanzando sin ti, pero el tiempo que el nido pase descargado no recibe bonos retroactivos.
+
+**EJEMPLO DE REFUGIO:** Construye un granero pequeño con techo de bloques completos y vallas a ambos lados y al fondo. Puedes dejar el frente abierto. Un techo solo no cuenta. Haz clic derecho en un huevo para comprobar el bono.
+
+![Granero abierto con techo y vallas en tres lados](screenshots/nest-shelter-example.png)
 
 ![Nidos con huevos y nidos apilados con andamios](screenshots/stacked-incubation.png)
 

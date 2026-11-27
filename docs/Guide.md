@@ -57,11 +57,15 @@ Right-click an egg to see the active incubation bonuses:
 
 | Bonus | Condition | Extra progress |
 | --- | --- | ---: |
-| Shelter | Nest is in an enclosed room | 15% |
+| Shelter | The nest has a roof above it and protection on at least three sides | 15% |
 | Light | Block light above the nest is at least 10 | 15% |
 | Caregiver | An eligible Pokémon is within 16 blocks | 30% |
 
 Caregivers include Togepi, Exeggcute, Chansey, Blissey, Happiny, Vullaby, Togetic, Kangaskhan, Maushold, and Pokémon with Flame Body. These bonuses can stack. The base timer still runs offline, but time spent unloaded does not receive retroactive bonus progress.
+
+**Shelter example:** Build a small barn with a solid roof and fences along both sides and the back. Leave the front open. A roof alone does not count. Right-click an egg to verify the Shelter bonus.
+
+![Open-front barn with roof and fences on three sides](screenshots/nest-shelter-example.png)
 
 ![Incubation nests with eggs and a stacked scaffolding setup](screenshots/stacked-incubation.png)
 

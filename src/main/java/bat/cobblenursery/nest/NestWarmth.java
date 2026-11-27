@@ -2,6 +2,7 @@ package bat.cobblenursery.nest;
 
 import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
 import java.util.ArrayDeque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.Function;
 import net.minecraft.core.BlockPos;
@@ -10,6 +11,12 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.FenceBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
+import net.minecraft.world.level.block.IronBarsBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.TrapDoorBlock;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.AABB;
@@ -55,6 +62,25 @@ public final class NestWarmth {
     }
 
     static Trace trace(ServerLevel level, BlockPos center) {
+        var cells = new HashMap<Long, Integer>();
+        ShelterGeometry.Blocks blocks = (x,y,z) -> cells.computeIfAbsent(BlockPos.asLong(x,y,z),
+                key -> shelterCell(level, BlockPos.of(key)));
+        if (ShelterGeometry.check(center.getX(),center.getY(),center.getZ(),blocks)) {
+            var covered = new HashSet<Long>();
+            covered.add(center.asLong());
+            // A shared proof for adjacent stations: only register centers that independently pass,
+            // but reuse sampled blocks and invalidate the proof once for everyone when they change.
+            for (var side : Direction.Plane.HORIZONTAL) {
+                var nearby = center.relative(side);
+                if (ShelterGeometry.check(nearby.getX(),nearby.getY(),nearby.getZ(),blocks))
+                    covered.add(nearby.asLong());
+            }
+            var read = new HashSet<Long>();
+            cells.forEach((key, value) -> { if (value >= 0) read.add(key); });
+            int x = center.getX(), y = center.getY(), z = center.getZ();
+            return new Trace(read, covered, x-1,y,z-1,x+1,y,z+1);
+        }
+        // Keep previously valid enclosed rooms working, even with unusual shapes.
         return trace(center, pos -> {
             if (level.isOutsideBuildHeight(pos) || !level.hasChunkAt(pos)) return Cell.UNKNOWN;
             var state = level.getBlockState(pos);
@@ -63,6 +89,17 @@ public final class NestWarmth {
                 return state.getValue(BlockStateProperties.OPEN) ? Cell.OPEN : Cell.SEALED;
             return Block.isShapeFullBlock(state.getCollisionShape(level, pos)) ? Cell.SEALED : Cell.OPEN;
         });
+    }
+
+    private static int shelterCell(ServerLevel level, BlockPos pos) {
+        if (level.isOutsideBuildHeight(pos) || !level.hasChunkAt(pos)) return -1;
+        var state = level.getBlockState(pos);
+        var block = state.getBlock();
+        if (block instanceof DoorBlock || block instanceof TrapDoorBlock || block instanceof FenceGateBlock)
+            return state.getValue(BlockStateProperties.OPEN) ? ShelterGeometry.OPEN : ShelterGeometry.COVER;
+        if (Block.isShapeFullBlock(state.getCollisionShape(level, pos))) return ShelterGeometry.SOLID;
+        return block instanceof FenceBlock || block instanceof IronBarsBlock || block instanceof SlabBlock
+                || block instanceof StairBlock || block instanceof WallBlock ? ShelterGeometry.COVER : ShelterGeometry.OPEN;
     }
 
     enum Cell { OPEN, SEALED, UNKNOWN }
