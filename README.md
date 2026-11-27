@@ -14,4 +14,4 @@ CobbleNursery source code is licensed under the Mozilla Public License 2.0. This
 
 ## Guide
 
-[Read the Spanish player guide](docs/Guia.md).
+[Player guide](docs/Guide.md) · [Español](docs/Guia.md)
