@@ -1,0 +1,7 @@
+{
+  "ui.nursery_open": { "subtitle": "subtitles.cobblenursery.nursery_open", "sounds": ["cobblenursery:ui/nursery_open"] },
+  "ui.nursery_click": { "subtitle": "subtitles.cobblenursery.nursery_click", "sounds": ["cobblenursery:ui/nursery_click"] },
+  "nest.hatch_1": { "sounds": ["cobblenursery:nest/hatch_1"] },
+  "nest.hatch_2": { "sounds": ["cobblenursery:nest/hatch_2"] },
+  "nest.hatch_3": { "sounds": ["cobblenursery:nest/hatch_3"] }
+}

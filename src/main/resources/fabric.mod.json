@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "id": "cobblenursery",
+  "version": "${version}",
+  "name": "CobbleNursery",
+  "description": "Pokemon nursery and breeding system for Cobblemon servers.",
+  "authors": [
+    "bat"
+  ],
+  "contact": {},
+  "license": "MPL-2.0",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "bat.cobblenursery.CobbleNursery"
+    ],
+    "client": [
+      "bat.cobblenursery.client.CobbleNurseryClient"
+    ]
+  },
+  "mixins": ["cobblenursery.world.mixins.json", { "config": "cobblenursery.client.mixins.json", "environment": "client" }],
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "fabric-api": "*",
+    "cobblemon": ">=1.8.0 <1.9.0"
+  }
+}

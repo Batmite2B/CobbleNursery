@@ -1,0 +1,54 @@
+package bat.cobblenursery.breeding.service;
+
+import bat.cobblenursery.nursery.model.BreedingItemSnapshot;
+import bat.cobblenursery.nursery.model.GeneratedEggData;
+import bat.cobblenursery.nursery.model.ParentSnapshot;
+
+import java.util.Map;
+
+public final class BreedingResultFactory {
+    private final ChildSpeciesResolver childSpeciesResolver = new ChildSpeciesResolver();
+    private final IvInheritanceService ivInheritanceService = new IvInheritanceService();
+    private final NatureInheritanceService natureInheritanceService = new NatureInheritanceService();
+    private final BallInheritanceService ballInheritanceService = new BallInheritanceService();
+    private final AbilityInheritanceService abilityInheritanceService = new AbilityInheritanceService();
+    private final EggMoveInheritanceService eggMoveInheritanceService = new EggMoveInheritanceService();
+    private final ShinyChanceService shinyChanceService = new ShinyChanceService();
+
+    public GeneratedEggData generate(ParentSnapshot a, ParentSnapshot b, BreedingItemSnapshot itemA,
+                                     BreedingItemSnapshot itemB, long seed) {
+        return generate(a, b, itemA, itemB, seed, Map.of());
+    }
+
+    public GeneratedEggData generate(ParentSnapshot a, ParentSnapshot b, BreedingItemSnapshot itemA,
+                                     BreedingItemSnapshot itemB, long seed,
+                                     Map<String, Integer> ivRollFloor) {
+        ResolvedChildIdentity childIdentity = childSpeciesResolver.resolveChildIdentity(a, b, itemA, itemB, seed);
+        String nature = natureInheritanceService.resolveNature(a, b, itemA, itemB, seed);
+        String ability = abilityInheritanceService.resolveInheritedAbility(
+            a,
+            b,
+            childIdentity.childSpeciesId(),
+            childIdentity.childFormId(),
+            seed
+        );
+        String inheritedBall = ballInheritanceService.resolveInheritedBall(a, b, seed);
+        var inheritedMoves = eggMoveInheritanceService.resolveInheritedMoves(
+            a,
+            b,
+            childIdentity.childSpeciesId(),
+            childIdentity.childFormId()
+        );
+        boolean shiny = shinyChanceService.rollShiny(seed);
+        return new GeneratedEggData(
+            childIdentity.childSpeciesId(),
+            childIdentity.childFormId(),
+            nature,
+            ability,
+            inheritedBall,
+            inheritedMoves,
+            ivInheritanceService.generateInheritedIvs(a, b, itemA, itemB, ivRollFloor, seed),
+            shiny
+        );
+    }
+}

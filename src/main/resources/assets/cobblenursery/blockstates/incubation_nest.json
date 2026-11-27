@@ -1,0 +1,48 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north"
+      },
+      "apply": {
+        "model": "cobblenursery:block/incubation_nest",
+        "y": 0
+      }
+    },
+    {
+      "when": {
+        "facing": "east"
+      },
+      "apply": {
+        "model": "cobblenursery:block/incubation_nest",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south"
+      },
+      "apply": {
+        "model": "cobblenursery:block/incubation_nest",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west"
+      },
+      "apply": {
+        "model": "cobblenursery:block/incubation_nest",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "framed": "true"
+      },
+      "apply": {
+        "model": "minecraft:block/scaffolding_stable"
+      }
+    }
+  ]
+}

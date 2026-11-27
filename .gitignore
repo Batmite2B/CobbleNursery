@@ -1,0 +1,15 @@
+.gradle/
+.idea/
+.vscode/
+build/
+logs/
+run/
+remappedSrc/
+libs/
+*.log
+*.zip
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+.env
+.env.*
+local.properties
