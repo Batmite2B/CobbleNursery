@@ -1,0 +1,163 @@
+package bat.cobblemondaycare.nest;
+
+import bat.cobblemondaycare.config.ServerNurserySettings;
+import com.cobblemon.mod.common.entity.pokemon.PokemonEntity;
+import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.function.Function;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.LightLayer;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DoorBlock;
+import net.minecraft.world.level.block.FenceBlock;
+import net.minecraft.world.level.block.FenceGateBlock;
+import net.minecraft.world.level.block.IronBarsBlock;
+import net.minecraft.world.level.block.ScaffoldingBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.WallBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+
+/** Server-authoritative incubation bonuses. No chunk tickets, client scans or per-egg world queries. */
+public final class NestWarmth {
+    private static final int MAX_HORIZONTAL = 12, MAX_VERTICAL = 8, MAX_CELLS = 2048;
+    private static final Direction[] DIRECTIONS = Direction.values();
+    private NestWarmth() {}
+
+    static boolean caregiverNear(ServerLevel level, BlockPos pos) {
+        return findCaregiver(level,pos) != null;
+    }
+
+    static java.util.UUID findCaregiver(ServerLevel level, BlockPos pos) {
+        Vec3 center = Vec3.atCenterOf(pos);
+        for (var e : level.getEntitiesOfClass(PokemonEntity.class,
+                new AABB(center, center).inflate(ServerNurserySettings.current().bonuses().caregiverRadius() + 0.001), e -> eligible(e, center))) {
+            return e.getUUID();
+        }
+        return null;
+    }
+
+    static boolean caregiverPresent(ServerLevel level, BlockPos pos, java.util.UUID id) {
+        return id != null && level.getEntity(id) instanceof PokemonEntity e && eligible(e, Vec3.atCenterOf(pos));
+    }
+
+    private static boolean eligible(PokemonEntity entity, Vec3 center) {
+        double radius = ServerNurserySettings.current().bonuses().caregiverRadius();
+        if (!entity.isAlive() || entity.isRemoved() || entity.getOwnerUUID() == null
+                || entity.distanceToSqr(center) > radius * radius) return false;
+        var pokemon = entity.getPokemon();
+        return NestWarmthRules.qualifies(pokemon.getSpecies().getResourceIdentifier().toString(), pokemon.getAbility().getName());
+    }
+
+    static int light(ServerLevel level, BlockPos pos) {
+        return level.getBrightness(LightLayer.BLOCK, pos.above());
+    }
+
+    public static boolean enclosed(ServerLevel level, BlockPos nest) {
+        return trace(level, nest.above()) != null;
+    }
+
+    static Trace trace(ServerLevel level, BlockPos center) {
+        var cells = new HashMap<Long, Integer>();
+        ShelterGeometry.Blocks blocks = (x,y,z) -> cells.computeIfAbsent(BlockPos.asLong(x,y,z),
+                key -> shelterCell(level, BlockPos.of(key)));
+        if (ShelterGeometry.check(center.getX(),center.getY(),center.getZ(),blocks)) {
+            var covered = new HashSet<Long>();
+            covered.add(center.asLong());
+            // A shared proof for adjacent stations: only register centers that independently pass,
+            // but reuse sampled blocks and invalidate the proof once for everyone when they change.
+            for (var side : Direction.Plane.HORIZONTAL) {
+                var nearby = center.relative(side);
+                if (ShelterGeometry.check(nearby.getX(),nearby.getY(),nearby.getZ(),blocks))
+                    covered.add(nearby.asLong());
+            }
+            var read = new HashSet<Long>();
+            cells.forEach((key, value) -> { if (value >= 0) read.add(key); });
+            int x = center.getX(), y = center.getY(), z = center.getZ();
+            return new Trace(read, covered, x-1,y,z-1,x+1,y,z+1);
+        }
+        // Keep previously valid enclosed rooms working, even with unusual shapes.
+        return trace(center, pos -> {
+            if (level.isOutsideBuildHeight(pos) || !level.hasChunkAt(pos)) return Cell.UNKNOWN;
+            var state = level.getBlockState(pos);
+            var block = state.getBlock();
+            if (block instanceof DoorBlock || block instanceof TrapDoorBlock)
+                return state.getValue(BlockStateProperties.OPEN) ? Cell.OPEN : Cell.SEALED;
+            return Block.isShapeFullBlock(state.getCollisionShape(level, pos)) ? Cell.SEALED : Cell.OPEN;
+        });
+    }
+
+    private static int shelterCell(ServerLevel level, BlockPos pos) {
+        if (level.isOutsideBuildHeight(pos) || !level.hasChunkAt(pos)) return -1;
+        var state = level.getBlockState(pos);
+        var block = state.getBlock();
+        if (block instanceof IncubationNestBlock && state.getValue(IncubationNestBlock.FRAMED))
+            return ShelterGeometry.RACK;
+        if (block instanceof ScaffoldingBlock
+                && state.getValue(ScaffoldingBlock.DISTANCE) < ScaffoldingBlock.STABILITY_MAX_DISTANCE)
+            return ShelterGeometry.RACK;
+        if (block instanceof DoorBlock || block instanceof TrapDoorBlock || block instanceof FenceGateBlock)
+            return state.getValue(BlockStateProperties.OPEN) ? ShelterGeometry.OPEN : ShelterGeometry.COVER;
+        if (Block.isShapeFullBlock(state.getCollisionShape(level, pos))) return ShelterGeometry.SOLID;
+        return block instanceof FenceBlock || block instanceof IronBarsBlock || block instanceof SlabBlock
+                || block instanceof StairBlock || block instanceof WallBlock ? ShelterGeometry.COVER : ShelterGeometry.OPEN;
+    }
+
+    enum Cell { OPEN, SEALED, UNKNOWN }
+
+    record Trace(java.util.Set<Long> read, java.util.Set<Long> open,
+                 int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        boolean fits(BlockPos center) {
+            return minX >= center.getX()-MAX_HORIZONTAL && maxX <= center.getX()+MAX_HORIZONTAL
+                && minZ >= center.getZ()-MAX_HORIZONTAL && maxZ <= center.getZ()+MAX_HORIZONTAL
+                && minY >= center.getY()-MAX_VERTICAL && maxY <= center.getY()+MAX_VERTICAL;
+        }
+    }
+
+    static boolean enclosed(BlockPos center, Function<BlockPos, Cell> read) {
+        return trace(center,read) != null;
+    }
+
+    private static Trace trace(BlockPos center, Function<BlockPos, Cell> read) {
+        if (read.apply(center) != Cell.OPEN) return null;
+        boolean roof = false;
+        for (int y = 1; y <= MAX_VERTICAL + 1; y++) {
+            var overhead = read.apply(center.above(y));
+            if (overhead == Cell.UNKNOWN) return null;
+            if (overhead == Cell.SEALED) { roof = true; break; }
+        }
+        if (!roof) return null;
+        var queue = new ArrayDeque<BlockPos>();
+        var seen = new HashSet<Long>();
+        var open = new HashSet<Long>();
+        int minX=center.getX(),maxX=minX,minY=center.getY(),maxY=minY,minZ=center.getZ(),maxZ=minZ;
+        queue.add(center);
+        seen.add(center.asLong());
+        while (!queue.isEmpty()) {
+            var current = queue.removeFirst();
+            open.add(current.asLong());
+            minX=Math.min(minX,current.getX()); maxX=Math.max(maxX,current.getX());
+            minY=Math.min(minY,current.getY()); maxY=Math.max(maxY,current.getY());
+            minZ=Math.min(minZ,current.getZ()); maxZ=Math.max(maxZ,current.getZ());
+            for (var dir : DIRECTIONS) {
+                var next = current.relative(dir);
+                if (!seen.add(next.asLong())) continue;
+                if (seen.size() > MAX_CELLS) return null;
+                var cell = read.apply(next);
+                if (cell == Cell.UNKNOWN) return null;
+                if (cell == Cell.SEALED) continue;
+                if (Math.abs(next.getX() - center.getX()) > MAX_HORIZONTAL
+                        || Math.abs(next.getZ() - center.getZ()) > MAX_HORIZONTAL
+                        || Math.abs(next.getY() - center.getY()) > MAX_VERTICAL) return null;
+                queue.addLast(next);
+            }
+        }
+        return new Trace(seen, open, minX,minY,minZ,maxX,maxY,maxZ);
+    }
+}

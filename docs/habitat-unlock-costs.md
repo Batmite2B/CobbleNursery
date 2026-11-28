@@ -1,8 +1,8 @@
 # Server configuration
 
-CobbleNursery creates `config/cobblenursery.json` when a dedicated server or a singleplayer world starts. Edit the server's file (the instance's file in singleplayer), then restart the server or close and reopen the world. Multiplayer clients do not copy the server's JSON; update both sides to the same mod version.
+Cobblemon Daycare creates `config/cobblemondaycare.json` when a dedicated server or a singleplayer world starts. Edit the server's file (the instance's file in singleplayer), then restart the server or close and reopen the world. Multiplayer clients do not copy the server's JSON; update both sides to the same mod version.
 
-New files include short `//` comments above each section. CobbleNursery accepts these comments as well as plain JSON. Strict JSON editors may flag the comments.
+New files include short `//` comments above each section. Cobblemon Daycare accepts these comments as well as plain JSON. Strict JSON editors may flag the comments.
 
 An existing file is never rewritten. If it only has habitat prices, keep it and add the sections you want to change. Omitted fields use defaults; invalid values fall back independently and log a warning.
 
@@ -42,4 +42,4 @@ Example: use emeralds and produce an egg every three minutes, keeping the other 
 }
 ```
 
-[Full default JSON](cobblenursery.example.json).
+[Full default JSON](cobblemondaycare.example.json).

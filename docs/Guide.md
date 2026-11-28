@@ -1,4 +1,4 @@
-# CobbleNursery Player Guide
+# Cobblemon Daycare Player Guide
 
 [Español](Guia.md)
 

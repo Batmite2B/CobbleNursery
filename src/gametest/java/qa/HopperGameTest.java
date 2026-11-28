@@ -1,11 +1,11 @@
 package qa;
 
-import bat.cobblenursery.item.NurseryEggItem;
-import bat.cobblenursery.nest.IncubationNestBlockEntity;
-import bat.cobblenursery.nursery.model.*;
-import bat.cobblenursery.nursery.storage.NurserySavedData;
-import bat.cobblenursery.registry.NurseryRegistry;
-import bat.cobblenursery.terminal.NurseryTerminalBlockEntity;
+import bat.cobblemondaycare.item.NurseryEggItem;
+import bat.cobblemondaycare.nest.IncubationNestBlockEntity;
+import bat.cobblemondaycare.nursery.model.*;
+import bat.cobblemondaycare.nursery.storage.NurserySavedData;
+import bat.cobblemondaycare.registry.NurseryRegistry;
+import bat.cobblemondaycare.terminal.NurseryTerminalBlockEntity;
 import java.util.*;
 import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.fabricmc.fabric.api.transfer.v1.item.*;
@@ -30,16 +30,16 @@ public class HopperGameTest implements FabricGameTest {
 
     @GameTest(template=FabricGameTest.EMPTY_STRUCTURE, timeoutTicks=40)
     public void configuredUnlockCurrency(GameTestHelper h) {
-        var previous=bat.cobblenursery.config.ServerNurserySettings.current();
-        var settings=new bat.cobblenursery.config.ServerNurserySettings(
-                new bat.cobblenursery.config.HabitatUnlockCosts(3,0,2), "minecraft:emerald",
+        var previous=bat.cobblemondaycare.config.ServerNurserySettings.current();
+        var settings=new bat.cobblemondaycare.config.ServerNurserySettings(
+                new bat.cobblemondaycare.config.HabitatUnlockCosts(3,0,2), "minecraft:emerald",
                 previous.breeding(), previous.incubation(), previous.bonuses(), previous.automation());
         var player=h.makeMockServerPlayerInLevel();
-        var nursery=bat.cobblenursery.nursery.service.NurseryService.getInstance();
+        var nursery=bat.cobblemondaycare.nursery.service.NurseryService.getInstance();
         var coins=net.minecraft.core.registries.BuiltInRegistries.ITEM
                 .getOptional(net.minecraft.resources.ResourceLocation.parse("cobblemon:relic_coin")).orElseThrow();
         try {
-            bat.cobblenursery.config.ServerNurserySettings.install(settings);
+            bat.cobblemondaycare.config.ServerNurserySettings.install(settings);
             player.getInventory().setItem(0,new ItemStack(coins,10));
             player.getInventory().setItem(1,new ItemStack(Items.EMERALD,2));
             h.assertFalse(nursery.unlockYard(player,2).success(),"free unlock skipped locked habitat");
@@ -53,7 +53,7 @@ public class HopperGameTest implements FabricGameTest {
             h.assertTrue(nursery.unlockYard(player,2).success(),"free next habitat was not unlocked");
             h.assertTrue(player.getInventory().getItem(1).getCount()==2,"free unlock consumed emeralds");
         } finally {
-            bat.cobblenursery.config.ServerNurserySettings.install(previous);
+            bat.cobblemondaycare.config.ServerNurserySettings.install(previous);
         }
         h.succeed();
     }
@@ -234,7 +234,7 @@ public class HopperGameTest implements FabricGameTest {
             h.assertTrue(replacement.setEggExport(owner,0,true) && replacement.setEggExport(owner,1,true),"cannot route multiple patios to a terminal");
 
             // An authorized manual claim consumes patio I; the hopper must not deliver those same eggs later.
-            var claim=bat.cobblenursery.nursery.service.NurseryService.getInstance().claimEggTray(owner,0);
+            var claim=bat.cobblemondaycare.nursery.service.NurseryService.getInstance().claimEggTray(owner,0);
             h.assertTrue(claim.claimedEggCount()==2,"manual claim did not get the two pending eggs: "+claim);
         });
         h.runAfterDelay(175,()->{
@@ -271,19 +271,19 @@ public class HopperGameTest implements FabricGameTest {
         var friend=h.makeMockServerPlayerInLevel();
         owner.setPos(h.absoluteVec(net.minecraft.world.phys.Vec3.atCenterOf(nestPos)));
         friend.setPos(h.absoluteVec(net.minecraft.world.phys.Vec3.atCenterOf(nestPos.north())));
-        h.assertTrue(bat.cobblenursery.nest.NestWarmth.enclosed(world,h.absolutePos(nestPos)),"glass room not closed");
+        h.assertTrue(bat.cobblemondaycare.nest.NestWarmth.enclosed(world,h.absolutePos(nestPos)),"glass room not closed");
         var doorway = new BlockPos(0,2,2);
         var door = Blocks.OAK_DOOR.defaultBlockState();
         var half=net.minecraft.world.level.block.state.properties.BlockStateProperties.DOUBLE_BLOCK_HALF;
         var open=net.minecraft.world.level.block.state.properties.BlockStateProperties.OPEN;
         world.setBlock(h.absolutePos(doorway),door,Block.UPDATE_CLIENTS);
         world.setBlock(h.absolutePos(doorway.above()),door.setValue(half,net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER),Block.UPDATE_CLIENTS);
-        h.assertTrue(bat.cobblenursery.nest.NestWarmth.enclosed(world,h.absolutePos(nestPos)),"closed door did not count");
+        h.assertTrue(bat.cobblemondaycare.nest.NestWarmth.enclosed(world,h.absolutePos(nestPos)),"closed door did not count");
         for(int dy=0;dy<=12;dy++) world.setBlock(h.absolutePos(doorway.west().above(dy)),Blocks.AIR.defaultBlockState(),Block.UPDATE_CLIENTS);
         world.setBlock(h.absolutePos(doorway),door.setValue(open,true),Block.UPDATE_CLIENTS);
         world.setBlock(h.absolutePos(doorway.above()),door.setValue(open,true).setValue(half,net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER),Block.UPDATE_CLIENTS);
         h.assertTrue(world.getBlockState(h.absolutePos(doorway)).getValue(open),"fixture could not open door");
-        h.assertFalse(bat.cobblenursery.nest.NestWarmth.enclosed(world,h.absolutePos(nestPos)),"open door gave shelter");
+        h.assertFalse(bat.cobblemondaycare.nest.NestWarmth.enclosed(world,h.absolutePos(nestPos)),"open door gave shelter");
         h.setBlock(doorway,Blocks.GLASS);
         h.setBlock(doorway.above(),Blocks.GLASS);
         var egg=NurseryRegistry.createNurseryEgg(EGG);
@@ -331,7 +331,7 @@ public class HopperGameTest implements FabricGameTest {
             h.useBlock(nestPos,owner);
             h.assertTrue(warmth(nest)==30,"outside 16 blocks should not count: "+warmth(nest));
             h.setBlock(doorway,Blocks.AIR);
-            h.assertFalse(bat.cobblenursery.nest.NestWarmth.enclosed(world,h.absolutePos(nestPos)),"roof alone or wall hole counted");
+            h.assertFalse(bat.cobblemondaycare.nest.NestWarmth.enclosed(world,h.absolutePos(nestPos)),"roof alone or wall hole counted");
         });
         h.runAfterDelay(237,()->{
             h.useBlock(nestPos,owner);

@@ -4,7 +4,7 @@ plugins {
     id("architectury-plugin") version ("3.4-SNAPSHOT")
 }
 
-group = "bat.cobblenursery"
+group = "bat.cobblemondaycare"
 version = "0.1.0-cobblemon1.8-port.1"
 
 architectury {

@@ -1,0 +1,113 @@
+{
+  "parent": "cobblemondaycare:item/egg/normal",
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "cobblemondaycare:item/egg/bug"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "cobblemondaycare:item/egg/dark"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "cobblemondaycare:item/egg/dragon"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4
+      },
+      "model": "cobblemondaycare:item/egg/electric"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5
+      },
+      "model": "cobblemondaycare:item/egg/fairy"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 6
+      },
+      "model": "cobblemondaycare:item/egg/fighting"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 7
+      },
+      "model": "cobblemondaycare:item/egg/fire"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 8
+      },
+      "model": "cobblemondaycare:item/egg/flying"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 9
+      },
+      "model": "cobblemondaycare:item/egg/ghost"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 10
+      },
+      "model": "cobblemondaycare:item/egg/grass"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 11
+      },
+      "model": "cobblemondaycare:item/egg/ground"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 12
+      },
+      "model": "cobblemondaycare:item/egg/ice"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 13
+      },
+      "model": "cobblemondaycare:item/egg/normal"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 14
+      },
+      "model": "cobblemondaycare:item/egg/poison"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 15
+      },
+      "model": "cobblemondaycare:item/egg/psychic"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 16
+      },
+      "model": "cobblemondaycare:item/egg/rock"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 17
+      },
+      "model": "cobblemondaycare:item/egg/steel"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 18
+      },
+      "model": "cobblemondaycare:item/egg/water"
+    }
+  ]
+}

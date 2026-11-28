@@ -1,0 +1,7 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "package": "bat.cobblemondaycare.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["NurseryGhostPosableModelMixin"]
+}

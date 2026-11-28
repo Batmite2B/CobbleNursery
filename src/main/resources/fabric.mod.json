@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "cobblenursery",
+  "id": "cobblemondaycare",
   "version": "${version}",
-  "name": "CobbleNursery",
+  "name": "Cobblemon Daycare",
   "description": "Pokemon nursery and breeding system for Cobblemon servers.",
   "authors": [
     "bat"
@@ -12,13 +12,13 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "bat.cobblenursery.CobbleNursery"
+      "bat.cobblemondaycare.CobblemonDaycare"
     ],
     "client": [
-      "bat.cobblenursery.client.CobbleNurseryClient"
+      "bat.cobblemondaycare.client.CobblemonDaycareClient"
     ]
   },
-  "mixins": ["cobblenursery.world.mixins.json", { "config": "cobblenursery.client.mixins.json", "environment": "client" }],
+  "mixins": ["cobblemondaycare.world.mixins.json", { "config": "cobblemondaycare.client.mixins.json", "environment": "client" }],
   "depends": {
     "fabricloader": ">=0.18.4",
     "minecraft": "~1.21.1",

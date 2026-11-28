@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "cobblemondaycare:block/nursery_nurse" },
+    "facing=east": { "model": "cobblemondaycare:block/nursery_nurse", "y": 90 },
+    "facing=south": { "model": "cobblemondaycare:block/nursery_nurse", "y": 180 },
+    "facing=west": { "model": "cobblemondaycare:block/nursery_nurse", "y": 270 }
+  }
+}

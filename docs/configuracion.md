@@ -1,8 +1,8 @@
 # Configuración del servidor
 
-Edita `config/cobblenursery.json` en el servidor o, si juegas solo, en tu instancia. Reinicia el servidor o vuelve a abrir el mundo. El mod no sobrescribe los archivos existentes: conserva tus precios y añade solo los campos que quieras cambiar. Si falta un campo, se usa el valor predeterminado. Si no es válido, también se registra un aviso.
+Edita `config/cobblemondaycare.json` en el servidor o, si juegas solo, en tu instancia. Reinicia el servidor o vuelve a abrir el mundo. El mod no sobrescribe los archivos existentes: conserva tus precios y añade solo los campos que quieras cambiar. Si falta un campo, se usa el valor predeterminado. Si no es válido, también se registra un aviso.
 
-Los archivos nuevos traen comentarios breves con `//` sobre cada sección. CobbleNursery acepta tanto estos comentarios como JSON sin comentarios.
+Los archivos nuevos traen comentarios breves con `//` sobre cada sección. Cobblemon Daycare acepta tanto estos comentarios como JSON sin comentarios.
 
 - **Patios.** `habitatUnlockItem` acepta un ID de objeto registrado, como `minecraft:emerald`. El predeterminado es `cobblemon:relic_coin`. En `habitatUnlockCosts`, los patios II, III y IV cuestan 64, 128 y 192 respectivamente. El patio I ya está desbloqueado; un precio de 0 hace gratis el siguiente patio, sin saltarse el orden.
 - **Crianza.** `breeding` permite cambiar el tiempo por huevo (300 s), el cupo por patio (8), si se permite Ditto (sí) y la probabilidad shiny (1 entre 4096).
@@ -12,4 +12,4 @@ Los archivos nuevos traen comentarios breves con `//` sobre cada sección. Cobbl
 
 Reducir el cupo no borra huevos y cambiar precios no vuelve a bloquear patios. En multijugador, servidor y clientes deben usar la misma versión del mod; solo se edita el JSON del servidor. [Claves exactas, rangos y ejemplo](habitat-unlock-costs.md).
 
-[JSON completo con los valores predeterminados](cobblenursery.example.json).
+[JSON completo con los valores predeterminados](cobblemondaycare.example.json).

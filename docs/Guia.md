@@ -1,4 +1,4 @@
-# Guía de CobbleNursery
+# Guía de Cobblemon Daycare
 
 [English](Guide.md)
 

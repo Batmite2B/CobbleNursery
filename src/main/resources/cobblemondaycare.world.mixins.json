@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "bat.cobblemondaycare.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "PokeCenterStructureMixin", "NestRoomInvalidationMixin", "NestScaffoldingSupportMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
